@@ -1,0 +1,19 @@
+join-messages:
+  enabled: true
+  to-player: "<green>Welcome to the network, <yellow>{player}</yellow>!"
+  broadcast: "<gray>[+] <white>{player}</white> joined the proxy. <dark_gray>({online}/{max})"
+  first-join-only: false
+  suppress-vanilla: false
+
+restart:
+  enabled: true
+  interval-hours: 24
+  random-jitter-minutes: 10
+  warning-minutes:
+    - 60
+    - 15
+    - 5
+    - 1
+  kick-message: "<red>The proxy is restarting for maintenance. Please reconnect shortly."
+  mode: graceful_shutdown
+  external-hook: ""
