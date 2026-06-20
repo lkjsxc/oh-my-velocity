@@ -1,6 +1,8 @@
 # Proxy Message Localization
 
 Messages are locale maps keyed by BCP 47 tags such as `en` or `en-US`.
+The shipped default config defines only `en`, so default runtime messages are
+English for every player. Operators may add more locale keys later.
 
 ## Fallback Order
 

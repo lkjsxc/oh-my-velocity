@@ -4,14 +4,11 @@ messages:
   join:
     to-player:
       en: "<green>Welcome to <yellow>lkjsxc.com</yellow>, <white>{player}</white>!"
-      ja: "<green><white>{player}</white>さん、<yellow>lkjsxc.com</yellow>へようこそ!"
     broadcast:
       en: "<gray>[+] <white>{player}</white> joined <yellow>{server}</yellow>. <dark_gray>({online}/{max})"
-      ja: "<gray>[+] <white>{player}</white>さんが<yellow>{server}</yellow>に参加しました。 <dark_gray>({online}/{max})"
   leave:
     broadcast:
       en: "<gray>[-] <white>{player}</white> left the network. <dark_gray>({online}/{max})"
-      ja: "<gray>[-] <white>{player}</white>さんがネットワークから退出しました。 <dark_gray>({online}/{max})"
 
 motd:
   enabled: true
@@ -57,25 +54,18 @@ hub:
   messages:
     connecting:
       en: "<gray>Sending you to <yellow>{server}</yellow>..."
-      ja: "<yellow>{server}</yellow><gray>へ移動しています..."
     connected:
       en: "<green>Connected to <yellow>{server}</yellow>."
-      ja: "<yellow>{server}</yellow><green>に接続しました。"
     already-connected:
       en: "<gray>You are already on <yellow>{server}</yellow>."
-      ja: "<gray>すでに<yellow>{server}</yellow>にいます。"
     unavailable:
       en: "<red>The hub server is not available."
-      ja: "<red>hubサーバーは利用できません。"
     failed:
       en: "<red>Could not connect to <yellow>{server}</yellow>."
-      ja: "<yellow>{server}</yellow><red>に接続できませんでした。"
     disabled:
       en: "<red>/hub is disabled."
-      ja: "<red>/hubは無効です。"
     players-only:
       en: "<red>Only players can use /hub."
-      ja: "<red>/hubはプレイヤーのみ使用できます。"
 
 restart:
   schedule-enabled: true

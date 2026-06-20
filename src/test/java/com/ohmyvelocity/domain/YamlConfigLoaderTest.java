@@ -4,8 +4,11 @@ import com.ohmyvelocity.adapter.config.YamlConfigLoader;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -47,5 +50,16 @@ class YamlConfigLoaderTest {
                 "motd:",
                 "  enabled: true",
                 "    extra: true")));
+    }
+
+    @Test
+    void defaultConfigShipsEnglishMessagesOnly() throws Exception {
+        try (InputStream stream = Objects.requireNonNull(
+                getClass().getClassLoader().getResourceAsStream("config.yml"))) {
+            String yaml = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+
+            assertTrue(yaml.contains("      en: "));
+            org.junit.jupiter.api.Assertions.assertFalse(yaml.contains("      ja: "));
+        }
     }
 }

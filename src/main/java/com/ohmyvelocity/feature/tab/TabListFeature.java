@@ -11,6 +11,7 @@ import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.player.TabListEntry;
 import com.velocitypowered.api.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -20,10 +21,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class TabListFeature {
     private final Object plugin;
@@ -31,6 +35,7 @@ public final class TabListFeature {
     private final ConfigManager configManager;
     private final TabRenderService renderer;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final Map<UUID, Set<UUID>> managedEntries = new ConcurrentHashMap<>();
     private ScheduledTask task;
 
     public TabListFeature(Object plugin, ProxyServer server, ConfigManager configManager, TabRenderService renderer) {
@@ -54,15 +59,14 @@ public final class TabListFeature {
         updateAll();
     }
 
-    public void reload() {
-        start();
-    }
+    public void reload() { start(); }
 
     public void stop() {
         if (task != null) {
             task.cancel();
             task = null;
         }
+        clearManagedEntries();
     }
 
     @Subscribe
@@ -77,6 +81,7 @@ public final class TabListFeature {
 
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
+        managedEntries.remove(event.getPlayer().getUniqueId());
         server.getScheduler().buildTask(plugin, this::updateAll).delay(Duration.ofSeconds(1)).schedule();
     }
 
@@ -92,32 +97,39 @@ public final class TabListFeature {
         players.forEach(player -> plans.put(
                 player.getUniqueId(),
                 renderer.render(config, context(player, group(player, config), date, time))));
-        players.forEach(viewer -> updateViewer(viewer, players, config, plans));
+        players.forEach(viewer -> updateViewer(viewer, players, plans));
     }
 
-    private void updateViewer(
-            Player viewer,
-            Collection<Player> players,
-            TabConfig config,
-            Map<UUID, TabRenderPlan> plans) {
+    private void updateViewer(Player viewer, Collection<Player> players, Map<UUID, TabRenderPlan> plans) {
         TabRenderPlan viewerPlan = plans.get(viewer.getUniqueId());
         if (viewerPlan == null) {
             return;
         }
         viewer.getTabList().setHeaderAndFooter(component(viewerPlan.header()), component(viewerPlan.footer()));
+        removeStaleEntries(viewer, players);
         for (Player subject : players) {
-            updateEntry(viewer, subject, config, plans.get(subject.getUniqueId()));
+            updateEntry(viewer, subject, plans.get(subject.getUniqueId()));
         }
     }
 
-    private void updateEntry(Player viewer, Player subject, TabConfig config, TabRenderPlan plan) {
+    private void updateEntry(Player viewer, Player subject, TabRenderPlan plan) {
         if (plan == null) {
             return;
         }
+        int order = plan.order() + Math.floorMod(subject.getUsername().toLowerCase(Locale.ROOT).hashCode(), 1000);
+        Component displayName = component(plan.displayName());
+        if (!viewer.getTabList().containsEntry(subject.getUniqueId())) {
+            TabListEntry entry = viewer.getTabList()
+                    .buildEntry(subject.getGameProfile(), displayName, latency(subject), 0);
+            viewer.getTabList().addEntry(entry);
+            entry.setListOrder(order);
+            managedEntries.computeIfAbsent(viewer.getUniqueId(), ignored -> ConcurrentHashMap.newKeySet())
+                    .add(subject.getUniqueId());
+        }
         viewer.getTabList().getEntry(subject.getUniqueId()).ifPresent(entry -> entry
-                .setDisplayName(component(plan.displayName()))
-                .setLatency((int) Math.min(Integer.MAX_VALUE, subject.getPing()))
-                .setListOrder(plan.order() + Math.floorMod(subject.getUsername().toLowerCase(Locale.ROOT).hashCode(), 1000)));
+                .setDisplayName(displayName)
+                .setLatency(latency(subject))
+                .setListOrder(order));
     }
 
     private TabRenderContext context(Player player, String group, String date, String time) {
@@ -132,9 +144,7 @@ public final class TabListFeature {
                 time);
     }
 
-    private static String currentDateTime(DateTimeFormatter formatter) {
-        return formatter.format(LocalDateTime.now());
-    }
+    private static String currentDateTime(DateTimeFormatter formatter) { return formatter.format(LocalDateTime.now()); }
 
     private String group(Player player, TabConfig config) {
         for (String group : config.groupOrder()) {
@@ -145,20 +155,43 @@ public final class TabListFeature {
         return "default";
     }
 
-    private String currentServer(Player player) {
-        return player.getCurrentServer().map(connection -> connection.getServerInfo().getName()).orElse("");
-    }
+    private String currentServer(Player player) { return player.getCurrentServer().map(c -> c.getServerInfo().getName()).orElse(""); }
 
-    private Component component(List<String> lines) {
-        return component(String.join("\n", lines));
-    }
+    private Component component(List<String> lines) { return component(String.join("\n", lines)); }
 
     private Component component(String text) {
         return text == null || text.isBlank() ? Component.empty() : miniMessage.deserialize(text);
     }
 
+    private static int latency(Player player) { return (int) Math.min(Integer.MAX_VALUE, player.getPing()); }
+
+    private void removeStaleEntries(Player viewer, Collection<Player> players) {
+        Set<UUID> managed = managedEntries.get(viewer.getUniqueId());
+        if (managed == null || managed.isEmpty()) {
+            return;
+        }
+        Set<UUID> online = new HashSet<>();
+        players.forEach(player -> online.add(player.getUniqueId()));
+        managed.removeIf(subjectId -> {
+            if (online.contains(subjectId)) {
+                return false;
+            }
+            viewer.getTabList().removeEntry(subjectId);
+            return true;
+        });
+    }
+
     private void clearHeaderFooter() {
-        server.getAllPlayers().forEach(player ->
-                player.getTabList().setHeaderAndFooter(Component.empty(), Component.empty()));
+        server.getAllPlayers().forEach(Player::clearPlayerListHeaderAndFooter);
+    }
+
+    private void clearManagedEntries() {
+        server.getAllPlayers().forEach(viewer -> {
+            Set<UUID> managed = managedEntries.remove(viewer.getUniqueId());
+            if (managed != null) {
+                managed.forEach(subjectId -> viewer.getTabList().removeEntry(subjectId));
+            }
+        });
+        managedEntries.clear();
     }
 }
