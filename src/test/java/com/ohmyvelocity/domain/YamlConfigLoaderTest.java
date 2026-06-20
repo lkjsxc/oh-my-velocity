@@ -12,9 +12,18 @@ class YamlConfigLoaderTest {
     @Test
     void parsesNestedSectionsAndLists() {
         Map<String, Object> root = YamlConfigLoader.parse(List.of(
-                "join-messages:",
+                "proxy-messages:",
                 "  enabled: true",
-                "  to-player: \"<green>Hi\"",
+                "  join:",
+                "    to-player:",
+                "      en: \"<green>Hi\"",
+                "      ja: \"<green>やあ\"",
+                "motd:",
+                "  enabled: true",
+                "  entries:",
+                "    - line1: \"One\"",
+                "      line2: \"Two\"",
+                "      weight: 2",
                 "restart:",
                 "  enabled: false",
                 "  warning-minutes:",
@@ -22,8 +31,10 @@ class YamlConfigLoaderTest {
                 "    - 5"));
 
         PluginConfig config = PluginConfig.fromMap(root);
-        assertTrue(config.joinMessages().enabled());
-        assertEquals("<green>Hi", config.joinMessages().toPlayer());
+        assertTrue(config.proxyMessages().enabled());
+        assertEquals("<green>やあ", config.proxyMessages().join().toPlayer(java.util.Locale.JAPANESE));
+        assertEquals("One", config.motd().entries().getFirst().line1());
+        assertEquals(2, config.motd().entries().getFirst().weight());
         assertEquals(List.of(60, 5), config.restart().warningMinutes());
     }
 }

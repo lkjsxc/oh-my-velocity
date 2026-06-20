@@ -1,6 +1,7 @@
 package com.ohmyvelocity.domain;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -16,21 +17,37 @@ public final class JoinMessageService {
     }
 
     public JoinMessagePlan plan(UUID playerId, String playerName, int online, int max, String serverName) {
-        JoinMessagesConfig config = configManager.config().joinMessages();
+        return joinPlan(playerId, playerName, online, max, serverName, Locale.ENGLISH);
+    }
+
+    public JoinMessagePlan joinPlan(
+            UUID playerId,
+            String playerName,
+            int online,
+            int max,
+            String serverName,
+            Locale locale) {
+        ProxyMessagesConfig config = configManager.config().proxyMessages();
         if (!config.enabled()) {
             return JoinMessagePlan.disabled();
         }
         if (config.firstJoinOnly() && !seenPlayers.add(playerId)) {
             return JoinMessagePlan.disabled();
         }
-        Map<String, String> values = Map.of(
-                "player", playerName,
-                "online", String.valueOf(online),
-                "max", String.valueOf(max),
-                "server", serverName == null ? "" : serverName);
-        String toPlayer = resolve(config.toPlayer(), "join.to-player", values);
-        String broadcast = resolve(config.broadcast(), "join.broadcast", values);
+        Map<String, String> values = values(playerName, online, max, serverName);
+        String toPlayer = resolve(config.join().toPlayer(locale), "join.to-player", values);
+        String broadcast = resolve(config.join().broadcast(locale), "join.broadcast", values);
         return new JoinMessagePlan(config.suppressVanilla(), toPlayer, broadcast);
+    }
+
+    public JoinMessagePlan leavePlan(String playerName, int online, int max, String serverName, Locale locale) {
+        ProxyMessagesConfig config = configManager.config().proxyMessages();
+        if (!config.enabled()) {
+            return JoinMessagePlan.disabled();
+        }
+        Map<String, String> values = values(playerName, online, max, serverName);
+        String broadcast = PlaceholderFormatter.format(config.leave().broadcast(locale), values);
+        return new JoinMessagePlan(false, "", broadcast);
     }
 
     private String resolve(String configured, String catalogKey, Map<String, String> values) {
@@ -39,5 +56,13 @@ public final class JoinMessageService {
             return "";
         }
         return PlaceholderFormatter.format(template, values);
+    }
+
+    private Map<String, String> values(String playerName, int online, int max, String serverName) {
+        return Map.of(
+                "player", playerName,
+                "online", String.valueOf(online),
+                "max", String.valueOf(max),
+                "server", serverName == null ? "" : serverName);
     }
 }

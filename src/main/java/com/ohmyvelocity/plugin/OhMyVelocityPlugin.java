@@ -4,9 +4,12 @@ import com.google.inject.Inject;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.ohmyvelocity.feature.motd.MotdPingListener;
 import com.ohmyvelocity.feature.restart.RestartScheduler;
+import com.ohmyvelocity.feature.tab.TabListFeature;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
@@ -15,13 +18,16 @@ import java.nio.file.Path;
         id = "ohmyvelocity",
         name = "oh-my-velocity",
         version = "0.1.0",
-        authors = {"lkj"})
+        authors = {"lkj"},
+        dependencies = {@Dependency(id = "velocity-scoreboard-api")})
 public final class OhMyVelocityPlugin {
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataDirectory;
     private Services services;
     private RestartScheduler restartScheduler;
+    private TabListFeature tabListFeature;
+    private MotdPingListener motdPingListener;
 
     @Inject
     public OhMyVelocityPlugin(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -46,11 +52,17 @@ public final class OhMyVelocityPlugin {
                     bootstrapped.configManager(),
                     bootstrapped.messages(),
                     bootstrapped.joinMessages(),
+                    bootstrapped.motd(),
+                    bootstrapped.tabRender(),
+                    bootstrapped.hubCommand(),
                     bootstrapped.restartSchedule(),
                     bootstrapped.shutdownExecutor());
-            ListenerRegistry.registerAll(this, server, services, restartScheduler);
-            CommandRegistry.registerAll(this, server, services, restartScheduler);
+            this.tabListFeature = new TabListFeature(this, server, services.configManager(), services.tabRender());
+            this.motdPingListener = new MotdPingListener(server, services.motd(), dataDirectory, logger);
+            ListenerRegistry.registerAll(this, server, services, restartScheduler, tabListFeature, motdPingListener);
+            CommandRegistry.registerAll(this, server, services, restartScheduler, tabListFeature, motdPingListener);
             restartScheduler.start();
+            tabListFeature.start();
             logger.info("oh-my-velocity enabled");
         } catch (Exception ex) {
             logger.error("Failed to enable oh-my-velocity", ex);

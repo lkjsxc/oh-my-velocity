@@ -1,7 +1,9 @@
 package com.ohmyvelocity.command;
 
 import com.ohmyvelocity.domain.MessageService;
+import com.ohmyvelocity.feature.motd.MotdPingListener;
 import com.ohmyvelocity.feature.restart.RestartScheduler;
+import com.ohmyvelocity.feature.tab.TabListFeature;
 import com.ohmyvelocity.plugin.Services;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -18,12 +20,20 @@ public final class OmvCommand implements SimpleCommand {
 
     private final Services services;
     private final RestartScheduler restartScheduler;
+    private final TabListFeature tabListFeature;
+    private final MotdPingListener motdPingListener;
     private final MessageService messages;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
-    public OmvCommand(Services services, RestartScheduler restartScheduler) {
+    public OmvCommand(
+            Services services,
+            RestartScheduler restartScheduler,
+            TabListFeature tabListFeature,
+            MotdPingListener motdPingListener) {
         this.services = services;
         this.restartScheduler = restartScheduler;
+        this.tabListFeature = tabListFeature;
+        this.motdPingListener = motdPingListener;
         this.messages = services.messages();
     }
 
@@ -51,6 +61,8 @@ public final class OmvCommand implements SimpleCommand {
         try {
             services.configManager().reload();
             restartScheduler.reload();
+            tabListFeature.reload();
+            motdPingListener.clearIconCache();
             source.sendMessage(miniMessage.deserialize(messages.raw("command.reload.ok")));
         } catch (IOException ex) {
             source.sendMessage(miniMessage.deserialize("<red>Reload failed: " + ex.getMessage()));

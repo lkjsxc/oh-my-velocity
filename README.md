@@ -1,6 +1,7 @@
 # oh-my-velocity
 
-Velocity proxy plugin: join messages, scheduled graceful restarts, and more.
+Velocity proxy plugin: MOTD, tab list, `/hub`, proxy messages, scheduled
+graceful restarts, and more.
 
 ## Build
 
@@ -12,7 +13,8 @@ Output: `build/libs/oh-my-velocity-0.1.0.jar`
 
 ## Install
 
-Copy the JAR into your Velocity `plugins/` folder. Requires Velocity 3.5+ and Java 21.
+Copy the JAR into your Velocity `plugins/` folder. Requires Velocity 3.5+,
+Java 21, and VelocityScoreboardAPI 2.1.0.
 
 ## Verify
 
@@ -36,6 +38,13 @@ After first start, edit `plugins/ohmyvelocity/config.yml`.
 - `join-messages.broadcast` — MiniMessage broadcast to other players
 - Placeholders: `{player}`, `{online}`, `{max}`, `{server}`
 
+### MOTD, tab, and hub
+
+- `motd.entries` — weighted server-list MOTDs
+- `tab.header` / `tab.footer` — tab list header/footer lines
+- `tab.display-name-format` — MiniMessage or legacy TAB-style format
+- `hub-command.target-server` — `/hub` destination, default `hub`
+
 ### Scheduled restart
 
 - `restart.interval-hours` — default 24
@@ -53,6 +62,7 @@ After first start, edit `plugins/ohmyvelocity/config.yml`.
 | `/omv reload` | `ohmyvelocity.admin` | Reload config |
 | `/omv restart now` | `ohmyvelocity.admin` | Immediate restart |
 | `/omv restart status` | `ohmyvelocity.admin` | Show next restart time |
+| `/hub` | none | Connect to the configured hub server |
 
 ## Docs
 

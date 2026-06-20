@@ -5,6 +5,92 @@ join-messages:
   first-join-only: false
   suppress-vanilla: false
 
+proxy-messages:
+  enabled: true
+  first-join-only: false
+  suppress-vanilla: false
+  join:
+    to-player:
+      en: "<green>Welcome to <yellow>lkjsxc.com</yellow>, <white>{player}</white>!"
+      ja: "<green><white>{player}</white>さん、<yellow>lkjsxc.com</yellow>へようこそ!"
+    broadcast:
+      en: "<gray>[+] <white>{player}</white> joined <yellow>{server}</yellow>. <dark_gray>({online}/{max})"
+      ja: "<gray>[+] <white>{player}</white>さんが<yellow>{server}</yellow>に参加しました。 <dark_gray>({online}/{max})"
+  leave:
+    broadcast:
+      en: "<gray>[-] <white>{player}</white> left the network. <dark_gray>({online}/{max})"
+      ja: "<gray>[-] <white>{player}</white>さんがネットワークから退出しました。 <dark_gray>({online}/{max})"
+
+motd:
+  enabled: true
+  max-players: 128
+  hide-player-count: false
+  target-servers:
+    - "*"
+  hover:
+    - "lkjsxc.com"
+    - "{online}/{max} players online"
+  entries:
+    - line1: "<gold><bold>lkjsxc.com</bold> <gray>| <white>Velocity Network"
+      line2: "<yellow>Survival</yellow> <gray>+</gray> <aqua>Creative</aqua> <gray>+</gray> <green>Community</green>"
+      weight: 1
+      icon: ""
+    - line1: "<gold><bold>lkjsxc.com</bold> <gray>| <white>Join the network"
+      line2: "<gray>Online now: <green>{online}</green><dark_gray>/</dark_gray><green>{max}</green>"
+      weight: 1
+      icon: ""
+
+tab:
+  enabled: true
+  refresh-interval-seconds: 5
+  header:
+    - "<gold><bold>lkjsxc.com</bold>"
+    - "<gray>{online}/{max} players online"
+  footer:
+    - "<gray>Connected to <yellow>{server}</yellow>"
+    - "<dark_gray>{date} {time}"
+  display-name-format: "§7[%server%]§r %player%"
+  group-order:
+    - owner
+    - admin
+    - mod
+    - helper
+    - builder
+    - vip
+    - default
+  ping-objective:
+    enabled: true
+    name: "omv_ping"
+    title: "<green>Ping"
+  collision-rule: "never"
+  name-visibility: "always"
+
+hub-command:
+  enabled: true
+  target-server: "hub"
+  messages:
+    connecting:
+      en: "<gray>Sending you to <yellow>{server}</yellow>..."
+      ja: "<yellow>{server}</yellow><gray>へ移動しています..."
+    connected:
+      en: "<green>Connected to <yellow>{server}</yellow>."
+      ja: "<yellow>{server}</yellow><green>に接続しました。"
+    already-connected:
+      en: "<gray>You are already on <yellow>{server}</yellow>."
+      ja: "<gray>すでに<yellow>{server}</yellow>にいます。"
+    unavailable:
+      en: "<red>The hub server is not available."
+      ja: "<red>hubサーバーは利用できません。"
+    failed:
+      en: "<red>Could not connect to <yellow>{server}</yellow>."
+      ja: "<yellow>{server}</yellow><red>に接続できませんでした。"
+    disabled:
+      en: "<red>/hub is disabled."
+      ja: "<red>/hubは無効です。"
+    players-only:
+      en: "<red>Only players can use /hub."
+      ja: "<red>/hubはプレイヤーのみ使用できます。"
+
 restart:
   enabled: true
   interval-hours: 24

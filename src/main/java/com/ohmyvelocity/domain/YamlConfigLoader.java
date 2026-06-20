@@ -9,66 +9,42 @@ import java.util.List;
 import java.util.Map;
 
 public final class YamlConfigLoader {
-    private YamlConfigLoader() {
-    }
+    private YamlConfigLoader() { }
 
     public static Map<String, Object> load(Path path) throws IOException {
         return parse(Files.readAllLines(path));
     }
 
-    static Map<String, Object> parse(List<String> lines) {
-        Map<String, Object> root = new LinkedHashMap<>();
-        String section = null;
-        String listKey = null;
-        List<Integer> list = null;
+    static Map<String, Object> parse(List<String> rawLines) {
+        List<Line> lines = rawLines.stream()
+                .map(YamlConfigLoader::line)
+                .filter(line -> line != null)
+                .toList();
+        return new Parser(lines).parseMap(0);
+    }
 
-        for (String raw : lines) {
-            if (raw.strip().isEmpty() || raw.strip().startsWith("#")) {
-                continue;
-            }
-            int indent = leadingSpaces(raw);
-            String line = raw.strip();
+    private static Line line(String raw) {
+        String stripped = stripComment(raw);
+        if (stripped.strip().isEmpty()) {
+            return null;
+        }
+        return new Line(leadingSpaces(stripped), stripped.strip());
+    }
 
-            if (line.startsWith("- ") && list != null) {
-                list.add(Integer.parseInt(line.substring(2).strip()));
-                continue;
-            }
-            if (list != null) {
-                commitList(root, section, listKey, list);
-                list = null;
-                listKey = null;
-            }
-
-            int colon = line.indexOf(':');
-            if (colon < 0) {
-                continue;
-            }
-            String key = line.substring(0, colon).strip();
-            String value = line.substring(colon + 1).strip();
-
-            if (value.isEmpty()) {
-                if (indent == 0) {
-                    section = key;
-                    root.putIfAbsent(section, new LinkedHashMap<String, Object>());
-                } else if (section != null) {
-                    listKey = key;
-                    list = new ArrayList<>();
-                }
-                continue;
-            }
-
-            Object parsed = parseScalar(value);
-            if (indent == 0) {
-                section = null;
-                root.put(key, parsed);
-            } else if (section != null) {
-                sectionMap(root, section).put(key, parsed);
+    private static String stripComment(String raw) {
+        boolean single = false;
+        boolean dbl = false;
+        for (int i = 0; i < raw.length(); i++) {
+            char current = raw.charAt(i);
+            if (current == '\'' && !dbl) {
+                single = !single;
+            } else if (current == '"' && !single) {
+                dbl = !dbl;
+            } else if (current == '#' && !single && !dbl) {
+                return raw.substring(0, i);
             }
         }
-        if (list != null) {
-            commitList(root, section, listKey, list);
-        }
-        return root;
+        return raw;
     }
 
     private static int leadingSpaces(String raw) {
@@ -79,20 +55,28 @@ public final class YamlConfigLoader {
         return count;
     }
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> sectionMap(Map<String, Object> root, String section) {
-        return (Map<String, Object>) root.computeIfAbsent(section, ignored -> new LinkedHashMap<>());
-    }
-
-    private static void commitList(Map<String, Object> root, String section, String key, List<Integer> list) {
-        if (section == null || key == null) {
-            return;
+    private static int colonOutsideQuotes(String text) {
+        boolean single = false;
+        boolean dbl = false;
+        for (int i = 0; i < text.length(); i++) {
+            char current = text.charAt(i);
+            if (current == '\'' && !dbl) {
+                single = !single;
+            } else if (current == '"' && !single) {
+                dbl = !dbl;
+            } else if (current == ':' && !single && !dbl) {
+                return i;
+            }
         }
-        sectionMap(root, section).put(key, List.copyOf(list));
+        return -1;
     }
 
     private static Object parseScalar(String value) {
-        if (value.startsWith("\"") && value.endsWith("\"")) {
+        if (value.startsWith("[") && value.endsWith("]")) {
+            return parseInlineList(value.substring(1, value.length() - 1));
+        }
+        if ((value.startsWith("\"") && value.endsWith("\""))
+                || (value.startsWith("'") && value.endsWith("'"))) {
             return value.substring(1, value.length() - 1);
         }
         if ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value)) {
@@ -102,6 +86,114 @@ public final class YamlConfigLoader {
             return Integer.parseInt(value);
         } catch (NumberFormatException ignored) {
             return value;
+        }
+    }
+
+    private static List<Object> parseInlineList(String value) {
+        List<Object> items = new ArrayList<>();
+        for (String part : splitComma(value)) {
+            if (!part.isBlank()) {
+                items.add(parseScalar(part.strip()));
+            }
+        }
+        return List.copyOf(items);
+    }
+
+    private static List<String> splitComma(String value) {
+        List<String> parts = new ArrayList<>();
+        boolean single = false;
+        boolean dbl = false;
+        int start = 0;
+        for (int i = 0; i < value.length(); i++) {
+            char current = value.charAt(i);
+            if (current == '\'' && !dbl) {
+                single = !single;
+            } else if (current == '"' && !single) {
+                dbl = !dbl;
+            } else if (current == ',' && !single && !dbl) {
+                parts.add(value.substring(start, i));
+                start = i + 1;
+            }
+        }
+        parts.add(value.substring(start));
+        return parts;
+    }
+    private record Line(int indent, String text) { }
+
+    private static final class Parser {
+        private final List<Line> lines;
+        private int index;
+
+        private Parser(List<Line> lines) {
+            this.lines = lines;
+        }
+
+        private Map<String, Object> parseMap(int indent) {
+            Map<String, Object> map = new LinkedHashMap<>();
+            while (index < lines.size()) {
+                Line line = lines.get(index);
+                if (line.indent() < indent || line.text().startsWith("- ")) {
+                    break;
+                }
+                if (line.indent() > indent) {
+                    index++;
+                    continue;
+                }
+                int colon = colonOutsideQuotes(line.text());
+                if (colon < 0) {
+                    index++;
+                    continue;
+                }
+                String key = line.text().substring(0, colon).strip();
+                String value = line.text().substring(colon + 1).strip();
+                index++;
+                map.put(key, value.isEmpty() ? parseChild(line.indent()) : parseScalar(value));
+            }
+            return map;
+        }
+
+        private Object parseChild(int parentIndent) {
+            if (index >= lines.size() || lines.get(index).indent() <= parentIndent) {
+                return new LinkedHashMap<String, Object>();
+            }
+            Line child = lines.get(index);
+            return child.text().startsWith("- ") ? parseList(child.indent()) : parseMap(child.indent());
+        }
+
+        private List<Object> parseList(int indent) {
+            List<Object> list = new ArrayList<>();
+            while (index < lines.size()) {
+                Line line = lines.get(index);
+                if (line.indent() < indent || !line.text().startsWith("- ")) {
+                    break;
+                }
+                if (line.indent() > indent) {
+                    index++;
+                    continue;
+                }
+                String item = line.text().substring(2).strip();
+                index++;
+                list.add(parseListItem(item, indent));
+            }
+            return List.copyOf(list);
+        }
+
+        private Object parseListItem(String item, int listIndent) {
+            if (item.isEmpty()) {
+                return parseChild(listIndent);
+            }
+            int colon = colonOutsideQuotes(item);
+            if (colon < 0) {
+                return parseScalar(item);
+            }
+            Map<String, Object> map = new LinkedHashMap<>();
+            String key = item.substring(0, colon).strip();
+            String value = item.substring(colon + 1).strip();
+            map.put(key, value.isEmpty() ? parseChild(listIndent) : parseScalar(value));
+            if (index < lines.size() && lines.get(index).indent() > listIndent) {
+                map.putAll(parseMap(lines.get(index).indent()));
+            }
+            return map;
         }
     }
 }
