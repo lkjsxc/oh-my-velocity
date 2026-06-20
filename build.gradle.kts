@@ -21,6 +21,7 @@ dependencies {
     annotationProcessor("com.velocitypowered:velocity-api:3.5.0-SNAPSHOT")
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("net.kyori:adventure-text-minimessage:4.17.0")
 }
 
 tasks.test {

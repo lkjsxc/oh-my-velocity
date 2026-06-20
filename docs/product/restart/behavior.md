@@ -3,8 +3,8 @@
 ## Schedule State
 
 The runtime adapter stores the next restart epoch in
-`plugins/ohmyvelocity/restart-state.yml`. The planner receives persisted state,
-current time, and random jitter as inputs.
+`plugins/ohmyvelocity/restart-state.yml`. The runtime scheduler persists and
+reloads that state before making warning or shutdown decisions.
 
 ## Scheduled Restart
 
@@ -25,5 +25,6 @@ failure is logged and shutdown continues.
 
 ## Reload
 
-Reload revalidates config and reschedules when schedule settings change.
-Delivered warnings are preserved only when the next restart epoch is unchanged.
+Reload revalidates config and preserves the existing next restart epoch unless
+it is missing or expired. Delivered warnings are preserved only when the next
+restart epoch is unchanged.

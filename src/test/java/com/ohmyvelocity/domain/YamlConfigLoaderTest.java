@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class YamlConfigLoaderTest {
@@ -38,5 +39,13 @@ class YamlConfigLoaderTest {
         assertEquals("One", config.motd().entries().getFirst().line1());
         assertEquals(2, config.motd().entries().getFirst().weight());
         assertEquals(List.of(60, 5), config.restart().warningMinutes());
+    }
+
+    @Test
+    void rejectsMalformedIndentation() {
+        assertThrows(IllegalArgumentException.class, () -> YamlConfigLoader.parse(List.of(
+                "motd:",
+                "  enabled: true",
+                "    extra: true")));
     }
 }

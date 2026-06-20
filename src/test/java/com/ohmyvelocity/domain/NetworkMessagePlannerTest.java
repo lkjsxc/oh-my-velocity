@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class NetworkMessagePlannerTest {
     @Test
-    void disablesRepeatFirstJoinMessage() {
+    void repeatFirstJoinOnlySuppressesPrivateMessage() {
         ProxyMessagesConfig config = new ProxyMessagesConfig(
                 true,
                 new LocalizedTemplateConfig(Map.of("en", "Hi {player}"), Map.of("en", "{player} joined")),
@@ -20,7 +20,7 @@ class NetworkMessagePlannerTest {
         JoinMessagePlan plan = NetworkMessagePlanner.joinPlan(config, "Ada", 2, 128, "hub", Locale.ENGLISH, false);
 
         assertFalse(plan.hasToPlayer());
-        assertFalse(plan.hasBroadcast());
+        assertEquals("Ada joined", plan.broadcast());
     }
 
     @Test
@@ -34,5 +34,18 @@ class NetworkMessagePlannerTest {
         JoinMessagePlan plan = NetworkMessagePlanner.leavePlan(config, "Ada", 1, 128, "hub", Locale.ENGLISH);
 
         assertEquals("Ada left hub 1/128", plan.broadcast());
+    }
+
+    @Test
+    void usesProxyWhenServerIsUnavailable() {
+        ProxyMessagesConfig config = new ProxyMessagesConfig(
+                true,
+                new LocalizedTemplateConfig(Map.of("en", ""), Map.of("en", "{player} joined {server}")),
+                new LocalizedTemplateConfig(Map.of(), Map.of("en", "")),
+                false);
+
+        JoinMessagePlan plan = NetworkMessagePlanner.joinPlan(config, "Ada", 2, 128, "", Locale.ENGLISH, true);
+
+        assertEquals("Ada joined proxy", plan.broadcast());
     }
 }

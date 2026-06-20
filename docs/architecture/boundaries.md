@@ -25,3 +25,8 @@ support      small reusable helpers
 - Server connection requests.
 - Scheduler lifecycle and process shutdown.
 - Config file IO and state persistence.
+
+Existing effectful code may live in `adapter`, `feature`, or `command`
+packages. Treat all three as adapter surfaces; new effectful code should prefer
+`adapter` unless moving an existing class would create churn without changing
+behavior.

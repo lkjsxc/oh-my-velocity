@@ -129,13 +129,11 @@ public final class YamlDocumentParser {
                     break;
                 }
                 if (line.indent() > indent) {
-                    index++;
-                    continue;
+                    throw error(line, "unexpected indentation");
                 }
                 int colon = colonOutsideQuotes(line.text());
                 if (colon < 0) {
-                    index++;
-                    continue;
+                    throw error(line, "expected key: value");
                 }
                 String key = line.text().substring(0, colon).strip();
                 String value = line.text().substring(colon + 1).strip();
@@ -161,8 +159,7 @@ public final class YamlDocumentParser {
                     break;
                 }
                 if (line.indent() > indent) {
-                    index++;
-                    continue;
+                    throw error(line, "unexpected indentation");
                 }
                 String item = line.text().substring(2).strip();
                 index++;
@@ -177,6 +174,9 @@ public final class YamlDocumentParser {
             }
             int colon = colonOutsideQuotes(item);
             if (colon < 0) {
+                if (index < lines.size() && lines.get(index).indent() > listIndent) {
+                    throw error(lines.get(index), "unexpected nested scalar content");
+                }
                 return parseScalar(item);
             }
             Map<String, Object> map = new LinkedHashMap<>();
@@ -187,6 +187,10 @@ public final class YamlDocumentParser {
                 map.putAll(parseMap(lines.get(index).indent()));
             }
             return map;
+        }
+
+        private IllegalArgumentException error(Line line, String message) {
+            return new IllegalArgumentException(message + ": " + line.text());
         }
     }
 }

@@ -15,12 +15,13 @@ public final class NetworkMessagePlanner {
             String serverName,
             Locale locale,
             boolean firstSeen) {
-        if (!config.enabled() || (config.firstJoinOnly() && !firstSeen)) {
+        if (!config.enabled()) {
             return JoinMessagePlan.disabled();
         }
         Map<String, String> values = values(playerName, online, max, serverName);
+        String toPlayer = config.firstJoinOnly() && !firstSeen ? "" : render(config.join().toPlayer(locale), values);
         return new JoinMessagePlan(
-                render(config.join().toPlayer(locale), values),
+                toPlayer,
                 render(config.join().broadcast(locale), values));
     }
 
@@ -51,6 +52,6 @@ public final class NetworkMessagePlanner {
                 "player", playerName,
                 "online", String.valueOf(online),
                 "max", String.valueOf(max),
-                "server", serverName == null ? "" : serverName);
+                "server", serverName == null || serverName.isBlank() ? "proxy" : serverName);
     }
 }

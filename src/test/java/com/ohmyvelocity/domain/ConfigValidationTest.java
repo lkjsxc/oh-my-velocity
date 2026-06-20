@@ -1,5 +1,6 @@
 package com.ohmyvelocity.domain;
 
+import com.ohmyvelocity.adapter.config.ConfigManager;
 import com.ohmyvelocity.adapter.config.YamlConfigLoader;
 
 import org.junit.jupiter.api.Test;
@@ -38,5 +39,40 @@ class ConfigValidationTest {
                         "hub:",
                         "  enabled: true",
                         "  target-server: \"\""))));
+    }
+
+    @Test
+    void rejectsLegacyConfigKeys() {
+        assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "join-" + "messages:",
+                        "  enabled: true"))));
+    }
+
+    @Test
+    void rejectsInvalidScalarTypes() {
+        assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "restart:",
+                        "  random-jitter-minutes: not-a-number"))));
+    }
+
+    @Test
+    void rejectsInvalidTemplatesOnReload() throws Exception {
+        java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("omv-invalid-template");
+        java.nio.file.Files.writeString(dir.resolve("config.yml"), """
+                messages:
+                  enabled: true
+                  join:
+                    to-player:
+                      en: "<green"
+                    broadcast:
+                      en: ""
+                  leave:
+                    broadcast:
+                      en: ""
+                """);
+
+        assertThrows(IllegalArgumentException.class, () -> new ConfigManager(dir).reload());
     }
 }

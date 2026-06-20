@@ -1,6 +1,6 @@
 # Scheduling
 
-Restart scheduling is a runtime adapter around a pure planner.
+Restart scheduling is a runtime adapter with isolated decision logic.
 
 ## Adapter Inputs
 
@@ -9,12 +9,13 @@ Restart scheduling is a runtime adapter around a pure planner.
 - Random jitter milliseconds.
 - Delivered warning thresholds.
 
-## Planner Outputs
+## Scheduler Decisions
 
 - Idle decision.
 - Warning decision with threshold minutes.
 - Restart decision.
 - Next immutable schedule state.
 
-The adapter persists state after planner decisions and before shutdown when
-state changes.
+The adapter persists state after decisions and before shutdown when state
+changes. Future work may split these decisions into a dedicated pure planner if
+the scheduler grows.

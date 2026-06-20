@@ -27,8 +27,11 @@ public final class RestartScheduleService {
     }
 
     public void loadState() throws IOException {
-        nextRestartEpochMs = stateStore.readNextRestartEpochMs();
-        deliveredWarnings.clear();
+        long loaded = stateStore.readNextRestartEpochMs();
+        if (loaded != nextRestartEpochMs) {
+            deliveredWarnings.clear();
+        }
+        nextRestartEpochMs = loaded;
     }
 
     public void scheduleInitialIfNeeded(long nowEpochMs) throws IOException {

@@ -2,6 +2,7 @@ package com.ohmyvelocity.feature.restart;
 
 import com.ohmyvelocity.adapter.config.ConfigManager;
 import com.ohmyvelocity.adapter.runtime.RestartScheduleService;
+import com.ohmyvelocity.domain.LegacyColorTranslator;
 import com.ohmyvelocity.domain.MessageService;
 import com.ohmyvelocity.domain.RestartConfig;
 import com.ohmyvelocity.domain.RestartTickResult;
@@ -79,7 +80,7 @@ public final class RestartScheduler {
         }
         RestartTickResult result = schedule.tick(System.currentTimeMillis());
         if (result.type() == RestartTickResult.Type.WARNING) {
-            var component = miniMessage.deserialize(result.warningMessage());
+            var component = miniMessage.deserialize(LegacyColorTranslator.toMiniMessage(result.warningMessage()));
             server.getAllPlayers().forEach(player -> player.sendMessage(component));
             return;
         }
@@ -98,7 +99,7 @@ public final class RestartScheduler {
             logger.warn("Failed to persist next restart: {}", ex.getMessage());
         }
         String kickTemplate = config.kickMessage().resolve("kick", java.util.Locale.ENGLISH);
-        var kick = miniMessage.deserialize(kickTemplate);
+        var kick = miniMessage.deserialize(LegacyColorTranslator.toMiniMessage(kickTemplate));
         if (config.externalHookMode() && !config.externalHook().isBlank()) {
             shutdownExecutor.runExternalHook(config.externalHook(), config.externalHookTimeoutSeconds(), logger);
         }

@@ -1,7 +1,8 @@
 package com.ohmyvelocity.feature.join;
 
-import com.ohmyvelocity.domain.JoinMessagePlan;
 import com.ohmyvelocity.adapter.velocity.message.JoinMessageService;
+import com.ohmyvelocity.domain.JoinMessagePlan;
+import com.ohmyvelocity.domain.LegacyColorTranslator;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
@@ -57,12 +58,12 @@ public final class JoinMessageListener {
             return;
         }
         if (plan.hasToPlayer()) {
-            player.sendMessage(miniMessage.deserialize(plan.toPlayer()));
+            player.sendMessage(miniMessage.deserialize(LegacyColorTranslator.toMiniMessage(plan.toPlayer())));
         }
         if (plan.hasBroadcast()) {
             server.getAllPlayers().forEach(online -> {
                 if (!online.getUniqueId().equals(player.getUniqueId())) {
-                    online.sendMessage(miniMessage.deserialize(plan.broadcast()));
+                    online.sendMessage(miniMessage.deserialize(LegacyColorTranslator.toMiniMessage(plan.broadcast())));
                 }
             });
         }

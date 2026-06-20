@@ -31,7 +31,7 @@ public final class ConfigManager {
 
     public void reload() throws IOException {
         Map<String, Object> root = YamlConfigLoader.load(configPath);
-        this.config = PluginConfig.fromMap(root);
+        this.config = ConfigTemplateValidator.validate(PluginConfig.fromMap(root));
     }
 
     public PluginConfig config() {

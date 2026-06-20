@@ -11,11 +11,18 @@ public final class ShutdownExecutor {
             return;
         }
         try {
-            Process process = new ProcessBuilder("/bin/sh", "-c", command).start();
+            Process process = new ProcessBuilder("/bin/sh", "-c", command)
+                    .redirectErrorStream(true)
+                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                    .start();
             boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
                 logger.warn("External restart hook timed out");
+                return;
+            }
+            if (process.exitValue() != 0) {
+                logger.warn("External restart hook exited with code {}", process.exitValue());
             }
         } catch (IOException ex) {
             logger.warn("External restart hook failed: {}", ex.getMessage());

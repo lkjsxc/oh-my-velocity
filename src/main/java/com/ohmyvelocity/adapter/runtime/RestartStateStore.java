@@ -11,7 +11,7 @@ public final class RestartStateStore {
     private final Path statePath;
 
     public RestartStateStore(Path dataDirectory) {
-        this.statePath = dataDirectory.resolve("next-restart.yml");
+        this.statePath = dataDirectory.resolve("restart-state.yml");
     }
 
     public long readNextRestartEpochMs() throws IOException {

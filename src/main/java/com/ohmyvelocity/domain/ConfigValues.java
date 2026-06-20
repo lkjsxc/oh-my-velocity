@@ -20,7 +20,14 @@ final class ConfigValues {
         if (value instanceof Boolean bool) {
             return bool;
         }
-        return value == null ? fallback : Boolean.parseBoolean(String.valueOf(value));
+        if (value == null) {
+            return fallback;
+        }
+        String text = String.valueOf(value);
+        if ("true".equalsIgnoreCase(text) || "false".equalsIgnoreCase(text)) {
+            return Boolean.parseBoolean(text);
+        }
+        throw new IllegalArgumentException(key + " must be boolean");
     }
 
     static int integer(Map<String, Object> map, String key, int fallback) {
@@ -32,7 +39,7 @@ final class ConfigValues {
             try {
                 return Integer.parseInt(String.valueOf(value));
             } catch (NumberFormatException ignored) {
-                return fallback;
+                throw new IllegalArgumentException(key + " must be an integer");
             }
         }
         return fallback;
@@ -46,7 +53,10 @@ final class ConfigValues {
     static List<String> stringList(Map<String, Object> map, String key, List<String> fallback) {
         Object value = map.get(key);
         if (!(value instanceof List<?> list)) {
-            return fallback;
+            if (value == null) {
+                return fallback;
+            }
+            throw new IllegalArgumentException(key + " must be a list");
         }
         List<String> parsed = list.stream().map(String::valueOf).toList();
         return parsed.isEmpty() ? fallback : List.copyOf(parsed);
@@ -55,9 +65,12 @@ final class ConfigValues {
     static List<Integer> integerList(Map<String, Object> map, String key, List<Integer> fallback) {
         Object value = map.get(key);
         if (!(value instanceof List<?> list)) {
-            return fallback;
+            if (value == null) {
+                return fallback;
+            }
+            throw new IllegalArgumentException(key + " must be an integer list");
         }
-        List<Integer> parsed = list.stream().map(ConfigValues::parseInteger).toList();
+        List<Integer> parsed = list.stream().map(item -> parseInteger(key, item)).toList();
         return parsed.isEmpty() ? fallback : List.copyOf(parsed);
     }
 
@@ -65,6 +78,9 @@ final class ConfigValues {
     static List<Map<String, Object>> mapList(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (!(value instanceof List<?> list)) {
+            if (value != null) {
+                throw new IllegalArgumentException(key + " must be a list of maps");
+            }
             return List.of();
         }
         return list.stream()
@@ -79,12 +95,12 @@ final class ConfigValues {
         if (value instanceof Map<?, ?> locales) {
             Map<String, String> parsed = new LinkedHashMap<>();
             locales.forEach((locale, text) -> parsed.put(normalizeLocale(locale), String.valueOf(text)));
-            return parsed.isEmpty() ? Map.of("en", fallback) : Map.copyOf(parsed);
+            return Map.copyOf(parsed);
         }
         if (value instanceof String text && !text.isBlank()) {
             return Map.of("en", text);
         }
-        return fallback.isBlank() ? Map.of() : Map.of("en", fallback);
+        return Map.of("en", fallback);
     }
 
     @SuppressWarnings("unchecked")
@@ -113,10 +129,14 @@ final class ConfigValues {
         return String.valueOf(locale).replace('_', '-').toLowerCase(Locale.ROOT);
     }
 
-    private static Integer parseInteger(Object item) {
+    private static Integer parseInteger(String key, Object item) {
         if (item instanceof Number number) {
             return number.intValue();
         }
-        return Integer.parseInt(String.valueOf(item));
+        try {
+            return Integer.parseInt(String.valueOf(item));
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(key + " must contain only integers");
+        }
     }
 }

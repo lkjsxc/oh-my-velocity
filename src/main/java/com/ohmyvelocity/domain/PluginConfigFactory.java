@@ -19,12 +19,25 @@ final class PluginConfigFactory {
     }
 
     static PluginConfig fromMap(Map<String, Object> root) {
+        rejectLegacyKeys(root);
         return new PluginConfig(
                 proxyMessages(root),
                 restart(root),
                 motd(root),
                 tab(root),
                 hub(root));
+    }
+
+    private static void rejectLegacyKeys(Map<String, Object> root) {
+        for (String key : List.of("join-" + "messages", "proxy-" + "messages", "hub-" + "command", "tab")) {
+            if (root.containsKey(key)) {
+                throw new IllegalArgumentException(key + " is not part of the current config schema");
+            }
+        }
+        String oldTargetHosts = "target-" + "servers";
+        if (section(root, "motd").containsKey(oldTargetHosts)) {
+            throw new IllegalArgumentException("motd." + oldTargetHosts + " was replaced by motd.target-hosts");
+        }
     }
 
     private static ProxyMessagesConfig proxyMessages(Map<String, Object> root) {

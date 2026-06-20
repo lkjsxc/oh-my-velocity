@@ -2,6 +2,7 @@ package com.ohmyvelocity.command;
 
 import com.ohmyvelocity.domain.HubCommandAction;
 import com.ohmyvelocity.domain.HubCommandPlan;
+import com.ohmyvelocity.domain.LegacyColorTranslator;
 import com.ohmyvelocity.adapter.velocity.hub.HubCommandService;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -29,7 +30,8 @@ public final class HubCommand implements SimpleCommand {
         CommandSource source = invocation.source();
         if (!(source instanceof Player player)) {
             source.sendMessage(miniMessage.deserialize(
-                    hubCommand.resultMessage("players-only", Locale.ENGLISH, hubCommand.targetServer())));
+                    LegacyColorTranslator.toMiniMessage(
+                            hubCommand.resultMessage("players-only", Locale.ENGLISH, hubCommand.targetServer()))));
             return;
         }
         String targetName = hubCommand.targetServer();
@@ -38,7 +40,7 @@ public final class HubCommand implements SimpleCommand {
                 .map(connection -> connection.getServerInfo().getName())
                 .orElse("");
         HubCommandPlan plan = hubCommand.plan(player.getEffectiveLocale(), current, target.isPresent());
-        player.sendMessage(miniMessage.deserialize(plan.message()));
+        player.sendMessage(miniMessage.deserialize(LegacyColorTranslator.toMiniMessage(plan.message())));
         if (plan.action() == HubCommandAction.CONNECT) {
             connect(player, target.orElseThrow(), plan.targetServer());
         }
@@ -48,7 +50,7 @@ public final class HubCommand implements SimpleCommand {
         player.createConnectionRequest(target).connect().thenAccept(result -> {
             String key = resultKey(result);
             String message = hubCommand.resultMessage(key, player.getEffectiveLocale(), targetName);
-            player.sendMessage(miniMessage.deserialize(message));
+            player.sendMessage(miniMessage.deserialize(LegacyColorTranslator.toMiniMessage(message)));
         });
     }
 

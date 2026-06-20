@@ -18,7 +18,12 @@ public final class ConfigValidation {
     }
 
     private static void messages(ProxyMessagesConfig config) {
-        // Empty proxy message maps intentionally disable that message path.
+        if (!config.enabled()) {
+            return;
+        }
+        requireLocales("messages.join.to-player", config.join().toPlayer());
+        requireLocales("messages.join.broadcast", config.join().broadcast());
+        requireLocales("messages.leave.broadcast", config.leave().broadcast());
     }
 
     private static void motd(MotdConfig config) {
