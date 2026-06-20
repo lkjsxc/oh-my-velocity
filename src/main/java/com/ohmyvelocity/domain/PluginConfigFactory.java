@@ -62,7 +62,7 @@ final class PluginConfigFactory {
                 .map(item -> new MotdEntry(
                         text(item, "line1", ""),
                         text(item, "line2", ""),
-                        Math.max(1, integer(item, "weight", 1)),
+                        integer(item, "weight", 1),
                         text(item, "icon", "")))
                 .toList();
         return new MotdConfig(
@@ -78,7 +78,7 @@ final class PluginConfigFactory {
         Map<String, Object> tab = section(root, "tab-list");
         return new TabConfig(
                 bool(tab, "enabled", false),
-                Math.max(1, integer(tab, "refresh-interval-seconds", 5)),
+                integer(tab, "refresh-interval-seconds", 5),
                 stringList(tab, "header", List.of("<gold><bold>lkjsxc.com</bold>")),
                 stringList(tab, "footer", List.of("<gray>{server}")),
                 text(tab, "display-name-format", "§7[%server%]§r %player%"),

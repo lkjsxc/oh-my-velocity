@@ -64,7 +64,7 @@ public final class OmvCommand implements SimpleCommand {
             tabListFeature.reload();
             motdPingListener.clearIconCache();
             source.sendMessage(miniMessage.deserialize(messages.raw("command.reload.ok")));
-        } catch (IOException ex) {
+        } catch (IOException | IllegalArgumentException ex) {
             source.sendMessage(miniMessage.deserialize("<red>Reload failed: " + ex.getMessage()));
         }
     }

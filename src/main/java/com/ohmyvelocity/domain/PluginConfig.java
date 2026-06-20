@@ -9,6 +9,6 @@ public record PluginConfig(
         TabConfig tab,
         HubCommandConfig hubCommand) {
     public static PluginConfig fromMap(Map<String, Object> root) {
-        return PluginConfigFactory.fromMap(root);
+        return ConfigValidation.validate(PluginConfigFactory.fromMap(root));
     }
 }
