@@ -1,25 +1,22 @@
 package com.ohmyvelocity.domain;
 
-import com.ohmyvelocity.adapter.config.ConfigManager;
-
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
 public final class MotdService {
-    private final ConfigManager configManager;
-
-    public MotdService(ConfigManager configManager) {
-        this.configManager = configManager;
+    public Optional<MotdPlan> plan(MotdConfig config, int online, String virtualHost, Random random) {
+        return plan(config, online, virtualHost, random, "", "");
     }
 
-    public Optional<MotdPlan> plan(int online, String virtualHost, Random random) {
-        return plan(online, virtualHost, random, "", "");
-    }
-
-    public Optional<MotdPlan> plan(int online, String virtualHost, Random random, String date, String time) {
-        MotdConfig config = configManager.config().motd();
+    public Optional<MotdPlan> plan(
+            MotdConfig config,
+            int online,
+            String virtualHost,
+            Random random,
+            String date,
+            String time) {
         if (!config.enabled() || !matchesHost(config, virtualHost)) {
             return Optional.empty();
         }

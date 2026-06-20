@@ -26,7 +26,7 @@ class MotdServiceTest {
                 restart:
                   schedule-enabled: false
                 """);
-        Optional<MotdPlan> plan = new MotdService(manager).plan(7, "lkjsxc.com", new Random(0));
+        Optional<MotdPlan> plan = new MotdService().plan(manager.config().motd(), 7, "lkjsxc.com", new Random(0));
 
         assertTrue(plan.isPresent());
         assertEquals("Online 7\nMax 128", plan.get().description());
@@ -44,7 +44,7 @@ class MotdServiceTest {
                   schedule-enabled: false
                 """);
 
-        assertTrue(new MotdService(manager).plan(1, "other.example.net", new Random(0)).isEmpty());
+        assertTrue(new MotdService().plan(manager.config().motd(), 1, "other.example.net", new Random(0)).isEmpty());
     }
 
     private static ConfigManager config(String yaml) throws Exception {

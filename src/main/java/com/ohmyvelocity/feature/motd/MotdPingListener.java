@@ -1,5 +1,6 @@
 package com.ohmyvelocity.feature.motd;
 
+import com.ohmyvelocity.adapter.config.ConfigManager;
 import com.ohmyvelocity.domain.MotdPlan;
 import com.ohmyvelocity.domain.MotdService;
 import com.velocitypowered.api.event.Subscribe;
@@ -23,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class MotdPingListener {
     private final ProxyServer server;
+    private final ConfigManager configManager;
     private final MotdService motd;
     private final Path dataDirectory;
     private final Logger logger;
@@ -30,8 +32,14 @@ public final class MotdPingListener {
     private final Random random = new Random();
     private final Map<String, Optional<Favicon>> icons = new ConcurrentHashMap<>();
 
-    public MotdPingListener(ProxyServer server, MotdService motd, Path dataDirectory, Logger logger) {
+    public MotdPingListener(
+            ProxyServer server,
+            ConfigManager configManager,
+            MotdService motd,
+            Path dataDirectory,
+            Logger logger) {
         this.server = server;
+        this.configManager = configManager;
         this.motd = motd;
         this.dataDirectory = dataDirectory;
         this.logger = logger;
@@ -41,6 +49,7 @@ public final class MotdPingListener {
     public void onProxyPing(ProxyPingEvent event) {
         String host = event.getConnection().getRawVirtualHost().orElse("");
         Optional<MotdPlan> planned = motd.plan(
+                configManager.config().motd(),
                 server.getPlayerCount(),
                 host,
                 random,

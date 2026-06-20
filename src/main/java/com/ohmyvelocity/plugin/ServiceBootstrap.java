@@ -3,8 +3,8 @@ package com.ohmyvelocity.plugin;
 import com.ohmyvelocity.adapter.config.ConfigManager;
 import com.ohmyvelocity.adapter.runtime.RestartScheduleService;
 import com.ohmyvelocity.adapter.runtime.RestartStateStore;
-import com.ohmyvelocity.domain.HubCommandService;
-import com.ohmyvelocity.domain.JoinMessageService;
+import com.ohmyvelocity.adapter.velocity.hub.HubCommandService;
+import com.ohmyvelocity.adapter.velocity.message.JoinMessageService;
 import com.ohmyvelocity.domain.MessageService;
 import com.ohmyvelocity.domain.MotdService;
 import com.ohmyvelocity.domain.TabRenderService;
@@ -24,7 +24,7 @@ public final class ServiceBootstrap {
 
         MessageService messages = new MessageService();
         JoinMessageService joinMessages = new JoinMessageService(configManager, messages);
-        MotdService motd = new MotdService(configManager);
+        MotdService motd = new MotdService();
         TabRenderService tabRender = new TabRenderService();
         HubCommandService hubCommand = new HubCommandService(configManager);
         RestartStateStore stateStore = new RestartStateStore(dataDirectory);

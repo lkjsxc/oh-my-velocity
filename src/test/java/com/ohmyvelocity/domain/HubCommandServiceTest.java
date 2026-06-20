@@ -1,6 +1,7 @@
 package com.ohmyvelocity.domain;
 
 import com.ohmyvelocity.adapter.config.ConfigManager;
+import com.ohmyvelocity.adapter.velocity.hub.HubCommandService;
 
 import org.junit.jupiter.api.Test;
 

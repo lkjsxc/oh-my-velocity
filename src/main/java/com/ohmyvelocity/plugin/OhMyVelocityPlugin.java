@@ -58,7 +58,12 @@ public final class OhMyVelocityPlugin {
                     bootstrapped.restartSchedule(),
                     bootstrapped.shutdownExecutor());
             this.tabListFeature = new TabListFeature(this, server, services.configManager(), services.tabRender());
-            this.motdPingListener = new MotdPingListener(server, services.motd(), dataDirectory, logger);
+            this.motdPingListener = new MotdPingListener(
+                    server,
+                    services.configManager(),
+                    services.motd(),
+                    dataDirectory,
+                    logger);
             ListenerRegistry.registerAll(this, server, services, restartScheduler, tabListFeature, motdPingListener);
             CommandRegistry.registerAll(this, server, services, restartScheduler, tabListFeature, motdPingListener);
             restartScheduler.start();

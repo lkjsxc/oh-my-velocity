@@ -1,10 +1,13 @@
-package com.ohmyvelocity.domain;
+package com.ohmyvelocity.adapter.velocity.message;
 
 import com.ohmyvelocity.adapter.config.ConfigManager;
+import com.ohmyvelocity.domain.JoinMessagePlan;
+import com.ohmyvelocity.domain.MessageService;
+import com.ohmyvelocity.domain.NetworkMessagePlanner;
+import com.ohmyvelocity.domain.ProxyMessagesConfig;
 
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,13 +34,8 @@ public final class JoinMessageService {
         if (!config.enabled()) {
             return JoinMessagePlan.disabled();
         }
-        if (config.firstJoinOnly() && !seenPlayers.add(playerId)) {
-            return JoinMessagePlan.disabled();
-        }
-        Map<String, String> values = values(playerName, online, max, serverName);
-        String toPlayer = render(config.join().toPlayer(locale), values);
-        String broadcast = render(config.join().broadcast(locale), values);
-        return new JoinMessagePlan(toPlayer, broadcast);
+        boolean firstSeen = seenPlayers.add(playerId);
+        return NetworkMessagePlanner.joinPlan(config, playerName, online, max, serverName, locale, firstSeen);
     }
 
     public JoinMessagePlan leavePlan(String playerName, int online, int max, String serverName, Locale locale) {
@@ -45,23 +43,6 @@ public final class JoinMessageService {
         if (!config.enabled()) {
             return JoinMessagePlan.disabled();
         }
-        Map<String, String> values = values(playerName, online, max, serverName);
-        String broadcast = render(config.leave().broadcast(locale), values);
-        return new JoinMessagePlan("", broadcast);
-    }
-
-    private String render(String template, Map<String, String> values) {
-        if (template == null || template.isBlank()) {
-            return "";
-        }
-        return PlaceholderFormatter.format(template, values);
-    }
-
-    private Map<String, String> values(String playerName, int online, int max, String serverName) {
-        return Map.of(
-                "player", playerName,
-                "online", String.valueOf(online),
-                "max", String.valueOf(max),
-                "server", serverName == null ? "" : serverName);
+        return NetworkMessagePlanner.leavePlan(config, playerName, online, max, serverName, locale);
     }
 }

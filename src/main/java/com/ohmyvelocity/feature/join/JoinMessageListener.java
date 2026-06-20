@@ -1,7 +1,7 @@
 package com.ohmyvelocity.feature.join;
 
 import com.ohmyvelocity.domain.JoinMessagePlan;
-import com.ohmyvelocity.domain.JoinMessageService;
+import com.ohmyvelocity.adapter.velocity.message.JoinMessageService;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;

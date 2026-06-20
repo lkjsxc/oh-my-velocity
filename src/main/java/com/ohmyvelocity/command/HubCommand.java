@@ -2,7 +2,7 @@ package com.ohmyvelocity.command;
 
 import com.ohmyvelocity.domain.HubCommandAction;
 import com.ohmyvelocity.domain.HubCommandPlan;
-import com.ohmyvelocity.domain.HubCommandService;
+import com.ohmyvelocity.adapter.velocity.hub.HubCommandService;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.ConnectionRequestBuilder;

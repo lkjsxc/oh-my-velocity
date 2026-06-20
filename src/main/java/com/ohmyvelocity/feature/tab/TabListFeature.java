@@ -19,8 +19,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 
 public final class TabListFeature {
     private final Object plugin;
@@ -41,6 +44,7 @@ public final class TabListFeature {
         stop();
         TabConfig config = configManager.config().tab();
         if (!config.enabled()) {
+            clearHeaderFooter();
             return;
         }
         task = server.getScheduler()
@@ -82,27 +86,41 @@ public final class TabListFeature {
             return;
         }
         Collection<Player> players = server.getAllPlayers();
-        players.forEach(viewer -> updateViewer(viewer, players, config));
+        String date = currentDateTime(DateTimeFormatter.ISO_LOCAL_DATE);
+        String time = currentDateTime(DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT));
+        Map<UUID, TabRenderPlan> plans = new HashMap<>();
+        players.forEach(player -> plans.put(
+                player.getUniqueId(),
+                renderer.render(config, context(player, group(player, config), date, time))));
+        players.forEach(viewer -> updateViewer(viewer, players, config, plans));
     }
 
-    private void updateViewer(Player viewer, Collection<Player> players, TabConfig config) {
-        TabRenderPlan viewerPlan = renderer.render(config, context(viewer, group(viewer, config)));
+    private void updateViewer(
+            Player viewer,
+            Collection<Player> players,
+            TabConfig config,
+            Map<UUID, TabRenderPlan> plans) {
+        TabRenderPlan viewerPlan = plans.get(viewer.getUniqueId());
+        if (viewerPlan == null) {
+            return;
+        }
         viewer.getTabList().setHeaderAndFooter(component(viewerPlan.header()), component(viewerPlan.footer()));
         for (Player subject : players) {
-            updateEntry(viewer, subject, config);
+            updateEntry(viewer, subject, config, plans.get(subject.getUniqueId()));
         }
     }
 
-    private void updateEntry(Player viewer, Player subject, TabConfig config) {
-        String group = group(subject, config);
-        TabRenderPlan plan = renderer.render(config, context(subject, group));
+    private void updateEntry(Player viewer, Player subject, TabConfig config, TabRenderPlan plan) {
+        if (plan == null) {
+            return;
+        }
         viewer.getTabList().getEntry(subject.getUniqueId()).ifPresent(entry -> entry
                 .setDisplayName(component(plan.displayName()))
                 .setLatency((int) Math.min(Integer.MAX_VALUE, subject.getPing()))
                 .setListOrder(plan.order() + Math.floorMod(subject.getUsername().toLowerCase(Locale.ROOT).hashCode(), 1000)));
     }
 
-    private TabRenderContext context(Player player, String group) {
+    private TabRenderContext context(Player player, String group, String date, String time) {
         return new TabRenderContext(
                 player.getUsername(),
                 currentServer(player),
@@ -110,8 +128,8 @@ public final class TabListFeature {
                 server.getPlayerCount(),
                 Math.max(configManager.config().motd().maxPlayers(), server.getConfiguration().getShowMaxPlayers()),
                 player.getPing(),
-                currentDateTime(DateTimeFormatter.ISO_LOCAL_DATE),
-                currentDateTime(DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)));
+                date,
+                time);
     }
 
     private static String currentDateTime(DateTimeFormatter formatter) {
@@ -139,4 +157,8 @@ public final class TabListFeature {
         return text == null || text.isBlank() ? Component.empty() : miniMessage.deserialize(text);
     }
 
+    private void clearHeaderFooter() {
+        server.getAllPlayers().forEach(player ->
+                player.getTabList().setHeaderAndFooter(Component.empty(), Component.empty()));
+    }
 }
