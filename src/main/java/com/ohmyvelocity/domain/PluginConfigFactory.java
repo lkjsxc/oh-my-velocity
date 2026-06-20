@@ -74,20 +74,27 @@ final class PluginConfigFactory {
 
     private static MotdConfig motd(Map<String, Object> root) {
         Map<String, Object> motd = section(root, "motd");
-        List<MotdEntry> entries = mapList(motd, "entries", "motd.entries").stream()
-                .map(item -> new MotdEntry(
-                        text(item, "line1", ""),
-                        text(item, "line2", ""),
-                        integer(item, "weight", 1),
-                        text(item, "icon", "")))
-                .toList();
+        List<Map<String, Object>> entryMaps = mapList(motd, "entries", "motd.entries");
+        List<MotdEntry> entries = new java.util.ArrayList<>();
+        for (int index = 0; index < entryMaps.size(); index++) {
+            entries.add(motdEntry(entryMaps.get(index), index));
+        }
         return new MotdConfig(
                 bool(motd, "enabled", false),
-                entries.isEmpty() ? MotdConfig.defaults().entries() : entries,
+                motd.containsKey("entries") ? entries : MotdConfig.defaults().entries(),
                 integer(motd, "max-players", 128),
                 stringList(motd, "samples", List.of()),
                 bool(motd, "hide-player-count", false),
                 stringList(motd, "target-hosts", List.of("*")));
+    }
+
+    private static MotdEntry motdEntry(Map<String, Object> item, int index) {
+        String path = "motd.entries[" + index + "]";
+        return new MotdEntry(
+                text(item, "line1", "", path + ".line1"),
+                text(item, "line2", "", path + ".line2"),
+                integer(item, "weight", 1, path + ".weight"),
+                text(item, "icon", "", path + ".icon"));
     }
 
     private static TabConfig tab(Map<String, Object> root) {

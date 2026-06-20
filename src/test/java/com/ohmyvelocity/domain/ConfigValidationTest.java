@@ -97,6 +97,17 @@ class ConfigValidationTest {
     }
 
     @Test
+    void rejectsScalarLocalizedTemplate() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "messages:",
+                        "  join:",
+                        "    to-player: \"hello\""))));
+
+        assertTrue(error.getMessage().contains("messages.join.to-player"));
+    }
+
+    @Test
     void rejectsWrongShapedMapListItem() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
                 YamlConfigLoader.parse(List.of(
@@ -104,5 +115,39 @@ class ConfigValidationTest {
                         "  entries: [bad]"))));
 
         assertTrue(error.getMessage().contains("motd.entries[0]"));
+    }
+
+    @Test
+    void reportsPathForWrongShapedMotdEntryField() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "motd:",
+                        "  entries:",
+                        "    - line1: [bad]",
+                        "      line2: \"\""))));
+
+        assertTrue(error.getMessage().contains("motd.entries[0].line1"));
+    }
+
+    @Test
+    void rejectsConfiguredEmptyMotdEntriesWhenEnabled() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "motd:",
+                        "  enabled: true",
+                        "  entries: []"))));
+
+        assertTrue(error.getMessage().contains("motd.entries"));
+    }
+
+    @Test
+    void rejectsConfiguredEmptyTabGroupOrderWhenEnabled() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "tab-list:",
+                        "  enabled: true",
+                        "  group-order: []"))));
+
+        assertTrue(error.getMessage().contains("tab-list.group-order"));
     }
 }

@@ -41,6 +41,10 @@ final class ConfigValues {
     }
 
     static int integer(Map<String, Object> map, String key, int fallback) {
+        return integer(map, key, fallback, key);
+    }
+
+    static int integer(Map<String, Object> map, String key, int fallback, String path) {
         Object value = map.get(key);
         if (value instanceof Number number) {
             return number.intValue();
@@ -49,15 +53,19 @@ final class ConfigValues {
             try {
                 return Integer.parseInt(String.valueOf(value));
             } catch (NumberFormatException ignored) {
-                throw new IllegalArgumentException(key + " must be an integer");
+                throw new IllegalArgumentException(path + " must be an integer");
             }
         }
         return fallback;
     }
 
     static String text(Map<String, Object> map, String key, String fallback) {
+        return text(map, key, fallback, key);
+    }
+
+    static String text(Map<String, Object> map, String key, String fallback, String path) {
         Object value = map.get(key);
-        return value == null ? fallback : scalarText(key, value);
+        return value == null ? fallback : scalarText(path, value);
     }
 
     static List<String> stringList(Map<String, Object> map, String key, List<String> fallback) {
@@ -72,7 +80,7 @@ final class ConfigValues {
         for (int index = 0; index < list.size(); index++) {
             parsed.add(scalarText(key + "[" + index + "]", list.get(index)));
         }
-        return parsed.isEmpty() ? fallback : List.copyOf(parsed);
+        return List.copyOf(parsed);
     }
 
     static List<Integer> integerList(Map<String, Object> map, String key, List<Integer> fallback) {
@@ -84,7 +92,7 @@ final class ConfigValues {
             throw new IllegalArgumentException(key + " must be an integer list");
         }
         List<Integer> parsed = list.stream().map(item -> parseInteger(key, item)).toList();
-        return parsed.isEmpty() ? fallback : List.copyOf(parsed);
+        return List.copyOf(parsed);
     }
 
     @SuppressWarnings("unchecked")
@@ -125,25 +133,20 @@ final class ConfigValues {
         if (value == null) {
             return Map.of("en", fallback);
         }
-        return Map.of("en", scalarText(path, value));
+        throw new IllegalArgumentException(path + " must be a locale map");
     }
 
-    @SuppressWarnings("unchecked")
     static Map<String, Map<String, String>> localizedMessages(Map<String, Object> map) {
         return localizedMessages(map, "messages");
     }
 
-    @SuppressWarnings("unchecked")
     static Map<String, Map<String, String>> localizedMessages(Map<String, Object> map, String path) {
         Map<String, Map<String, String>> messages = new LinkedHashMap<>();
         map.forEach((key, value) -> {
             if (value instanceof Map<?, ?> child) {
-                messages.put(key, localized((Map<String, Object>) child, "value", "", path + "." + key + ".value"));
-                if (!child.containsKey("value")) {
-                    messages.put(key, localizedDirect(child, path + "." + key));
-                }
+                messages.put(key, localizedDirect(child, path + "." + key));
             } else {
-                messages.put(key, Map.of("en", scalarText(path + "." + key, value)));
+                throw new IllegalArgumentException(path + "." + key + " must be a locale map");
             }
         });
         return Map.copyOf(messages);
