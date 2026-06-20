@@ -23,7 +23,7 @@ class ConfigValidationTest {
 
     @Test
     void rejectsUnsupportedMotdWeight() {
-        assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
                 YamlConfigLoader.parse(List.of(
                         "motd:",
                         "  enabled: true",
@@ -31,6 +31,8 @@ class ConfigValidationTest {
                         "    - line1: \"Bad\"",
                         "      line2: \"\"",
                         "      weight: 0"))));
+
+        assertTrue(error.getMessage().contains("motd.entries[0].weight"));
     }
 
     @Test
@@ -105,6 +107,17 @@ class ConfigValidationTest {
                         "    to-player: \"hello\""))));
 
         assertTrue(error.getMessage().contains("messages.join.to-player"));
+    }
+
+    @Test
+    void rejectsEmptyHubLocaleMapOverride() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "hub:",
+                        "  messages:",
+                        "    disabled:"))));
+
+        assertTrue(error.getMessage().contains("hub.messages.disabled"));
     }
 
     @Test

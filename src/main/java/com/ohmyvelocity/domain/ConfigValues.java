@@ -153,6 +153,9 @@ final class ConfigValues {
     }
 
     private static Map<String, String> localizedDirect(Map<?, ?> locales, String path) {
+        if (locales.isEmpty()) {
+            throw new IllegalArgumentException(path + " must define at least one locale");
+        }
         Map<String, String> parsed = new LinkedHashMap<>();
         locales.forEach((locale, text) -> parsed.put(
                 normalizeLocale(locale),

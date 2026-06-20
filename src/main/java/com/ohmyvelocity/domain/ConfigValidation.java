@@ -32,8 +32,9 @@ public final class ConfigValidation {
         }
         require(config.maxPlayers() > 0, "motd.max-players must be positive");
         require(!config.entries().isEmpty(), "motd.entries must not be empty");
-        for (MotdEntry entry : config.entries()) {
-            require(entry.weight() > 0, "motd.entries[].weight must be positive");
+        for (int index = 0; index < config.entries().size(); index++) {
+            MotdEntry entry = config.entries().get(index);
+            require(entry.weight() > 0, "motd.entries[" + index + "].weight must be positive");
         }
     }
 
