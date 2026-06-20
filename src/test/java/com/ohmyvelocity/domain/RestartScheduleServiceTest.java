@@ -1,5 +1,7 @@
 package com.ohmyvelocity.domain;
 
+import com.ohmyvelocity.adapter.runtime.RestartScheduleService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

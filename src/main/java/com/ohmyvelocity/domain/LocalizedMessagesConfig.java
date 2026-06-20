@@ -5,7 +5,10 @@ import java.util.Map;
 
 public record LocalizedMessagesConfig(Map<String, Map<String, String>> messages) {
     public LocalizedMessagesConfig {
-        messages = Map.copyOf(messages);
+        messages = messages.entrySet().stream()
+                .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey,
+                        entry -> Map.copyOf(entry.getValue())));
     }
 
     public String resolve(String key, Locale locale) {

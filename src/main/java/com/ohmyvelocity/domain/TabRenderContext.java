@@ -6,5 +6,7 @@ public record TabRenderContext(
         String group,
         int online,
         int max,
-        long ping) {
+        long ping,
+        String date,
+        String time) {
 }

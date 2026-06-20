@@ -1,4 +1,6 @@
-package com.ohmyvelocity.domain;
+package com.ohmyvelocity.adapter.runtime;
+
+import com.ohmyvelocity.adapter.config.YamlConfigLoader;
 
 import java.io.IOException;
 import java.nio.file.Files;

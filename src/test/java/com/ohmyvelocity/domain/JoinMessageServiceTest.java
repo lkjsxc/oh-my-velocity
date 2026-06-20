@@ -1,5 +1,7 @@
 package com.ohmyvelocity.domain;
 
+import com.ohmyvelocity.adapter.config.ConfigManager;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
@@ -13,7 +15,7 @@ class JoinMessageServiceTest {
     @Test
     void firstJoinOnlySkipsRepeatPlayers() throws Exception {
         ConfigManager configManager = configWithFirstJoinOnly();
-        JoinMessageService service = new JoinMessageService(configManager, new MessageService(MessageCatalog.load(null)));
+        JoinMessageService service = new JoinMessageService(configManager, new MessageService());
         UUID id = UUID.randomUUID();
 
         assertTrue(service.plan(id, "bob", 1, 100, "lobby").hasToPlayer());
@@ -23,7 +25,7 @@ class JoinMessageServiceTest {
     @Test
     void localeFallbackAndLeaveMessagesRender() throws Exception {
         ConfigManager configManager = configWithProxyMessages();
-        JoinMessageService service = new JoinMessageService(configManager, new MessageService(MessageCatalog.load(null)));
+        JoinMessageService service = new JoinMessageService(configManager, new MessageService());
 
         JoinMessagePlan join = service.joinPlan(
                 UUID.randomUUID(),
@@ -42,19 +44,24 @@ class JoinMessageServiceTest {
     private static ConfigManager configWithFirstJoinOnly() throws Exception {
         java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("omv-test");
         java.nio.file.Files.writeString(dir.resolve("config.yml"), """
-                join-messages:
+                messages:
                   enabled: true
-                  to-player: "Hello {player}"
-                  broadcast: ""
                   first-join-only: true
-                  suppress-vanilla: false
+                  join:
+                    to-player:
+                      en: "Hello {player}"
+                    broadcast:
+                      en: ""
                 restart:
-                  enabled: false
+                  schedule-enabled: false
                   interval-hours: 24
                   random-jitter-minutes: 0
                   warning-minutes:
                     - 5
-                  kick-message: ""
+                  warning-message:
+                    en: ""
+                  kick-message:
+                    en: ""
                   mode: graceful_shutdown
                   external-hook: ""
                 """);
@@ -66,7 +73,7 @@ class JoinMessageServiceTest {
     private static ConfigManager configWithProxyMessages() throws Exception {
         java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("omv-test");
         java.nio.file.Files.writeString(dir.resolve("config.yml"), """
-                proxy-messages:
+                messages:
                   enabled: true
                   join:
                     to-player:
@@ -78,7 +85,7 @@ class JoinMessageServiceTest {
                     broadcast:
                       ja: "{player} 退出 {server}"
                 restart:
-                  enabled: false
+                  schedule-enabled: false
                 """);
         ConfigManager manager = new ConfigManager(dir);
         manager.reload();

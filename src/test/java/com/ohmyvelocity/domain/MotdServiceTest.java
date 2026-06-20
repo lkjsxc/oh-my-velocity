@@ -1,5 +1,7 @@
 package com.ohmyvelocity.domain;
 
+import com.ohmyvelocity.adapter.config.ConfigManager;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -15,14 +17,14 @@ class MotdServiceTest {
                 motd:
                   enabled: true
                   max-players: 128
-                  hover:
+                  samples:
                     - "{online}/{max}"
                   entries:
                     - line1: "Online {online}"
                       line2: "Max {max}"
                       weight: 1
                 restart:
-                  enabled: false
+                  schedule-enabled: false
                 """);
         Optional<MotdPlan> plan = new MotdService(manager).plan(7, "lkjsxc.com", new Random(0));
 
@@ -36,10 +38,10 @@ class MotdServiceTest {
         ConfigManager manager = config("""
                 motd:
                   enabled: true
-                  target-servers:
+                  target-hosts:
                     - "play.example.net"
                 restart:
-                  enabled: false
+                  schedule-enabled: false
                 """);
 
         assertTrue(new MotdService(manager).plan(1, "other.example.net", new Random(0)).isEmpty());

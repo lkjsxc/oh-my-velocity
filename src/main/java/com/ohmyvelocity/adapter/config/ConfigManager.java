@@ -1,4 +1,6 @@
-package com.ohmyvelocity.domain;
+package com.ohmyvelocity.adapter.config;
+
+import com.ohmyvelocity.domain.PluginConfig;
 
 import java.io.IOException;
 import java.io.InputStream;

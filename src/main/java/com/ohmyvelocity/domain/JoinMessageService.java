@@ -1,5 +1,7 @@
 package com.ohmyvelocity.domain;
 
+import com.ohmyvelocity.adapter.config.ConfigManager;
+
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -8,12 +10,10 @@ import java.util.UUID;
 
 public final class JoinMessageService {
     private final ConfigManager configManager;
-    private final MessageService messages;
     private final Set<UUID> seenPlayers = new HashSet<>();
 
     public JoinMessageService(ConfigManager configManager, MessageService messages) {
         this.configManager = configManager;
-        this.messages = messages;
     }
 
     public JoinMessagePlan plan(UUID playerId, String playerName, int online, int max, String serverName) {
@@ -35,9 +35,9 @@ public final class JoinMessageService {
             return JoinMessagePlan.disabled();
         }
         Map<String, String> values = values(playerName, online, max, serverName);
-        String toPlayer = resolve(config.join().toPlayer(locale), "join.to-player", values);
-        String broadcast = resolve(config.join().broadcast(locale), "join.broadcast", values);
-        return new JoinMessagePlan(config.suppressVanilla(), toPlayer, broadcast);
+        String toPlayer = render(config.join().toPlayer(locale), values);
+        String broadcast = render(config.join().broadcast(locale), values);
+        return new JoinMessagePlan(toPlayer, broadcast);
     }
 
     public JoinMessagePlan leavePlan(String playerName, int online, int max, String serverName, Locale locale) {
@@ -46,12 +46,11 @@ public final class JoinMessageService {
             return JoinMessagePlan.disabled();
         }
         Map<String, String> values = values(playerName, online, max, serverName);
-        String broadcast = PlaceholderFormatter.format(config.leave().broadcast(locale), values);
-        return new JoinMessagePlan(false, "", broadcast);
+        String broadcast = render(config.leave().broadcast(locale), values);
+        return new JoinMessagePlan("", broadcast);
     }
 
-    private String resolve(String configured, String catalogKey, Map<String, String> values) {
-        String template = configured == null || configured.isBlank() ? messages.raw(catalogKey) : configured;
+    private String render(String template, Map<String, String> values) {
         if (template == null || template.isBlank()) {
             return "";
         }

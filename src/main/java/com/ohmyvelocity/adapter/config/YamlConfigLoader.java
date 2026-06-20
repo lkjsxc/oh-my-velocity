@@ -1,4 +1,4 @@
-package com.ohmyvelocity.domain;
+package com.ohmyvelocity.adapter.config;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,7 +15,7 @@ public final class YamlConfigLoader {
         return parse(Files.readAllLines(path));
     }
 
-    static Map<String, Object> parse(List<String> rawLines) {
+    public static Map<String, Object> parse(List<String> rawLines) {
         List<Line> lines = rawLines.stream()
                 .map(YamlConfigLoader::line)
                 .filter(line -> line != null)

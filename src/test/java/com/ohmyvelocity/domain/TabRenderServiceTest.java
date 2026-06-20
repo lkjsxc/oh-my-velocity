@@ -16,14 +16,11 @@ class TabRenderServiceTest {
                 List.of("<gold>{online}/{max}"),
                 List.of("<gray>{server}"),
                 "§7[%server%]§r %player%",
-                List.of("owner", "admin", "default"),
-                new PingObjectiveConfig(true, "omv_ping", "<green>Ping"),
-                "never",
-                "always");
+                List.of("owner", "admin", "default"));
         TabRenderService service = new TabRenderService();
 
-        TabRenderPlan admin = service.render(config, new TabRenderContext("Ada", "hub", "admin", 4, 128, 42));
-        TabRenderPlan guest = service.render(config, new TabRenderContext("Bob", "hub", "default", 4, 128, 50));
+        TabRenderPlan admin = service.render(config, new TabRenderContext("Ada", "hub", "admin", 4, 128, 42, "", ""));
+        TabRenderPlan guest = service.render(config, new TabRenderContext("Bob", "hub", "default", 4, 128, 50, "", ""));
 
         assertEquals("<gray>[hub]<reset> Ada", admin.displayName());
         assertEquals("<gold>4/128", admin.header().getFirst());

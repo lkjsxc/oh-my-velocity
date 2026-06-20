@@ -10,7 +10,9 @@ public final class TabRenderService {
                 context.online(),
                 context.max(),
                 context.server(),
-                context.ping());
+                context.ping(),
+                context.date(),
+                context.time());
         return new TabRenderPlan(
                 renderLines(config.header(), values),
                 renderLines(config.footer(), values),

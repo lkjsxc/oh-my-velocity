@@ -1,7 +1,7 @@
 package com.ohmyvelocity.domain;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import com.ohmyvelocity.adapter.config.ConfigManager;
+
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -15,13 +15,17 @@ public final class MotdService {
     }
 
     public Optional<MotdPlan> plan(int online, String virtualHost, Random random) {
+        return plan(online, virtualHost, random, "", "");
+    }
+
+    public Optional<MotdPlan> plan(int online, String virtualHost, Random random, String date, String time) {
         MotdConfig config = configManager.config().motd();
         if (!config.enabled() || !matchesHost(config, virtualHost)) {
             return Optional.empty();
         }
         MotdEntry entry = select(config, random);
         int max = Math.max(0, config.maxPlayers());
-        Map<String, String> values = values("", online, max, "", 0);
+        Map<String, String> values = values("", online, max, normalizeHost(virtualHost), 0, date, time);
         String line1 = render(entry.line1(), values);
         String line2 = render(entry.line2(), values);
         return Optional.of(new MotdPlan(
@@ -47,24 +51,38 @@ public final class MotdService {
         return config.entries().getLast();
     }
 
-    static Map<String, String> values(String player, int online, int max, String server, long ping) {
-        LocalDateTime now = LocalDateTime.now();
+    static Map<String, String> values(
+            String player,
+            int online,
+            int max,
+            String server,
+            long ping,
+            String date,
+            String time) {
+        String host = server == null ? "" : server;
         return Map.of(
                 "player", player,
                 "online", String.valueOf(online),
                 "max", String.valueOf(max),
-                "server", server == null ? "" : server,
+                "server", host,
+                "host", host,
                 "ping", String.valueOf(ping),
-                "date", DateTimeFormatter.ISO_LOCAL_DATE.format(now),
-                "time", DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT).format(now));
+                "date", date == null ? "" : date,
+                "time", time == null ? "" : time);
     }
 
     private static boolean matchesHost(MotdConfig config, String virtualHost) {
-        if (config.targetServers().isEmpty() || config.targetServers().contains("*")) {
+        if (config.targetHosts().isEmpty() || config.targetHosts().contains("*")) {
             return true;
         }
+        String host = normalizeHost(virtualHost);
+        return config.targetHosts().stream().map(item -> item.toLowerCase(Locale.ROOT)).anyMatch(host::equals);
+    }
+
+    private static String normalizeHost(String virtualHost) {
         String host = virtualHost == null ? "" : virtualHost.toLowerCase(Locale.ROOT);
-        return config.targetServers().stream().map(item -> item.toLowerCase(Locale.ROOT)).anyMatch(host::equals);
+        int portIndex = host.indexOf(':');
+        return portIndex < 0 ? host : host.substring(0, portIndex);
     }
 
     private static String render(String template, Map<String, String> values) {
@@ -72,7 +90,6 @@ public final class MotdService {
     }
 
     private static java.util.List<String> samplePlayers(MotdConfig config, Map<String, String> values) {
-        java.util.List<String> source = config.samplePlayers().isEmpty() ? config.hover() : config.samplePlayers();
-        return source.stream().map(item -> PlaceholderFormatter.format(item, values)).toList();
+        return config.samples().stream().map(item -> PlaceholderFormatter.format(item, values)).toList();
     }
 }

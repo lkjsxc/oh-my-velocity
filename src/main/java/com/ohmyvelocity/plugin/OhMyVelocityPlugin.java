@@ -19,7 +19,7 @@ import java.nio.file.Path;
         name = "oh-my-velocity",
         version = "0.1.0",
         authors = {"lkj"},
-        dependencies = {@Dependency(id = "velocity-scoreboard-api")})
+        dependencies = {})
 public final class OhMyVelocityPlugin {
     private final ProxyServer server;
     private final Logger logger;

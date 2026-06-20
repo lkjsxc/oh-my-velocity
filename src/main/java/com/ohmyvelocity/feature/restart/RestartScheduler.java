@@ -1,9 +1,9 @@
 package com.ohmyvelocity.feature.restart;
 
-import com.ohmyvelocity.domain.ConfigManager;
+import com.ohmyvelocity.adapter.config.ConfigManager;
+import com.ohmyvelocity.adapter.runtime.RestartScheduleService;
 import com.ohmyvelocity.domain.MessageService;
 import com.ohmyvelocity.domain.RestartConfig;
-import com.ohmyvelocity.domain.RestartScheduleService;
 import com.ohmyvelocity.domain.RestartTickResult;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.scheduler.ScheduledTask;
@@ -67,7 +67,7 @@ public final class RestartScheduler {
     }
 
     public void restartNow() {
-        if (!schedule.enabled()) {
+        if (!configManager.config().restart().manualCommandEnabled()) {
             return;
         }
         performRestart(configManager.config().restart());
@@ -97,12 +97,10 @@ public final class RestartScheduler {
         } catch (IOException ex) {
             logger.warn("Failed to persist next restart: {}", ex.getMessage());
         }
-        String kickTemplate = config.kickMessage().isBlank()
-                ? messages.raw("restart.now")
-                : config.kickMessage();
+        String kickTemplate = config.kickMessage().resolve("kick", java.util.Locale.ENGLISH);
         var kick = miniMessage.deserialize(kickTemplate);
         if (config.externalHookMode() && !config.externalHook().isBlank()) {
-            shutdownExecutor.runExternalHook(config.externalHook(), logger);
+            shutdownExecutor.runExternalHook(config.externalHook(), config.externalHookTimeoutSeconds(), logger);
         }
         logger.info("oh-my-velocity initiating scheduled proxy shutdown");
         server.shutdown(kick);

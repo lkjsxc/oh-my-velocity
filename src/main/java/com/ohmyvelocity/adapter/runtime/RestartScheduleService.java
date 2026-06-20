@@ -1,4 +1,10 @@
-package com.ohmyvelocity.domain;
+package com.ohmyvelocity.adapter.runtime;
+
+import com.ohmyvelocity.adapter.config.ConfigManager;
+import com.ohmyvelocity.domain.MessageService;
+import com.ohmyvelocity.domain.PlaceholderFormatter;
+import com.ohmyvelocity.domain.RestartConfig;
+import com.ohmyvelocity.domain.RestartTickResult;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,7 +56,8 @@ public final class RestartScheduleService {
         }
         for (int warning : sortedWarnings(config.warningMinutes())) {
             if (minutesRemaining <= warning && deliveredWarnings.add(warning)) {
-                String text = messages.format("restart.warning", Map.of("minutes", String.valueOf(warning)));
+                String template = config.warningMessage().resolve("warning", java.util.Locale.ENGLISH);
+                String text = PlaceholderFormatter.format(template, Map.of("minutes", String.valueOf(warning)));
                 return RestartTickResult.warning(text);
             }
         }

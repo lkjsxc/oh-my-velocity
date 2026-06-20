@@ -1,5 +1,7 @@
 package com.ohmyvelocity.domain;
 
+import com.ohmyvelocity.adapter.config.ConfigManager;
+
 import java.util.Locale;
 import java.util.Map;
 

@@ -1,8 +1,8 @@
 package com.ohmyvelocity.domain;
 
-public record JoinMessagePlan(boolean suppressVanilla, String toPlayer, String broadcast) {
+public record JoinMessagePlan(String toPlayer, String broadcast) {
     public static JoinMessagePlan disabled() {
-        return new JoinMessagePlan(false, "", "");
+        return new JoinMessagePlan("", "");
     }
 
     public boolean hasToPlayer() {

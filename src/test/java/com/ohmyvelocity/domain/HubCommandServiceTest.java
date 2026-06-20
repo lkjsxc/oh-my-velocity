@@ -1,5 +1,7 @@
 package com.ohmyvelocity.domain;
 
+import com.ohmyvelocity.adapter.config.ConfigManager;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
@@ -11,7 +13,7 @@ class HubCommandServiceTest {
     @Test
     void plansUnavailableAlreadyConnectedAndConnect() throws Exception {
         HubCommandService service = new HubCommandService(config("""
-                hub-command:
+                hub:
                   target-server: "hub"
                   messages:
                     connecting:
@@ -21,7 +23,7 @@ class HubCommandServiceTest {
                     unavailable:
                       en: "missing {server}"
                 restart:
-                  enabled: false
+                  schedule-enabled: false
                 """));
 
         assertEquals(HubCommandAction.UNAVAILABLE, service.plan(Locale.ENGLISH, "survival", false).action());
@@ -34,13 +36,13 @@ class HubCommandServiceTest {
     @Test
     void disabledHubUsesLocalizedMessage() throws Exception {
         HubCommandService service = new HubCommandService(config("""
-                hub-command:
+                hub:
                   enabled: false
                   messages:
                     disabled:
                       ja: "無効 {server}"
                 restart:
-                  enabled: false
+                  schedule-enabled: false
                 """));
 
         HubCommandPlan plan = service.plan(Locale.JAPANESE, "survival", true);

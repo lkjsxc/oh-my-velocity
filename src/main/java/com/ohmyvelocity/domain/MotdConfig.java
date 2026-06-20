@@ -6,15 +6,13 @@ public record MotdConfig(
         boolean enabled,
         List<MotdEntry> entries,
         int maxPlayers,
-        List<String> hover,
-        List<String> samplePlayers,
+        List<String> samples,
         boolean hidePlayerCount,
-        List<String> targetServers) {
+        List<String> targetHosts) {
     public MotdConfig {
         entries = List.copyOf(entries);
-        hover = List.copyOf(hover);
-        samplePlayers = List.copyOf(samplePlayers);
-        targetServers = List.copyOf(targetServers);
+        samples = List.copyOf(samples);
+        targetHosts = List.copyOf(targetHosts);
     }
 
     public static MotdConfig defaults() {
@@ -22,7 +20,6 @@ public record MotdConfig(
                 false,
                 List.of(new MotdEntry("<gold><bold>lkjsxc.com</bold>", "<gray>{online}/{max} online", 1, "")),
                 128,
-                List.of(),
                 List.of(),
                 false,
                 List.of("*"));

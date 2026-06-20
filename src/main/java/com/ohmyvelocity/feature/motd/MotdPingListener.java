@@ -12,6 +12,9 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -37,7 +40,12 @@ public final class MotdPingListener {
     @Subscribe
     public void onProxyPing(ProxyPingEvent event) {
         String host = event.getConnection().getRawVirtualHost().orElse("");
-        Optional<MotdPlan> planned = motd.plan(server.getPlayerCount(), host, random);
+        Optional<MotdPlan> planned = motd.plan(
+                server.getPlayerCount(),
+                host,
+                random,
+                currentDateTime(DateTimeFormatter.ISO_LOCAL_DATE),
+                currentDateTime(DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)));
         if (planned.isEmpty()) {
             return;
         }
@@ -81,5 +89,9 @@ public final class MotdPingListener {
     private static ServerPing.SamplePlayer samplePlayer(String name) {
         UUID id = UUID.nameUUIDFromBytes(name.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         return new ServerPing.SamplePlayer(name, id);
+    }
+
+    private static String currentDateTime(DateTimeFormatter formatter) {
+        return formatter.format(LocalDateTime.now());
     }
 }

@@ -1,5 +1,7 @@
 package com.ohmyvelocity.domain;
 
+import com.ohmyvelocity.adapter.config.YamlConfigLoader;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -12,7 +14,7 @@ class YamlConfigLoaderTest {
     @Test
     void parsesNestedSectionsAndLists() {
         Map<String, Object> root = YamlConfigLoader.parse(List.of(
-                "proxy-messages:",
+                "messages:",
                 "  enabled: true",
                 "  join:",
                 "    to-player:",
@@ -25,7 +27,7 @@ class YamlConfigLoaderTest {
                 "      line2: \"Two\"",
                 "      weight: 2",
                 "restart:",
-                "  enabled: false",
+                "  schedule-enabled: false",
                 "  warning-minutes:",
                 "    - 60",
                 "    - 5"));

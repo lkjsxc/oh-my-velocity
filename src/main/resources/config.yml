@@ -1,14 +1,6 @@
-join-messages:
-  enabled: true
-  to-player: "<green>Welcome to the network, <yellow>{player}</yellow>!"
-  broadcast: "<gray>[+] <white>{player}</white> joined the proxy. <dark_gray>({online}/{max})"
-  first-join-only: false
-  suppress-vanilla: false
-
-proxy-messages:
+messages:
   enabled: true
   first-join-only: false
-  suppress-vanilla: false
   join:
     to-player:
       en: "<green>Welcome to <yellow>lkjsxc.com</yellow>, <white>{player}</white>!"
@@ -25,9 +17,9 @@ motd:
   enabled: true
   max-players: 128
   hide-player-count: false
-  target-servers:
+  target-hosts:
     - "*"
-  hover:
+  samples:
     - "lkjsxc.com"
     - "{online}/{max} players online"
   entries:
@@ -40,7 +32,7 @@ motd:
       weight: 1
       icon: ""
 
-tab:
+tab-list:
   enabled: true
   refresh-interval-seconds: 5
   header:
@@ -58,14 +50,8 @@ tab:
     - builder
     - vip
     - default
-  ping-objective:
-    enabled: true
-    name: "omv_ping"
-    title: "<green>Ping"
-  collision-rule: "never"
-  name-visibility: "always"
 
-hub-command:
+hub:
   enabled: true
   target-server: "hub"
   messages:
@@ -92,7 +78,8 @@ hub-command:
       ja: "<red>/hubはプレイヤーのみ使用できます。"
 
 restart:
-  enabled: true
+  schedule-enabled: true
+  manual-command-enabled: true
   interval-hours: 24
   random-jitter-minutes: 10
   warning-minutes:
@@ -100,6 +87,10 @@ restart:
     - 15
     - 5
     - 1
-  kick-message: "<red>The proxy is restarting for maintenance. Please reconnect shortly."
+  warning-message:
+    en: "<gold>Proxy restart in <yellow>{minutes}</yellow> minute(s)."
+  kick-message:
+    en: "<red>The proxy is restarting for maintenance. Please reconnect shortly."
   mode: graceful_shutdown
   external-hook: ""
+  external-hook-timeout-seconds: 30

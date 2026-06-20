@@ -11,13 +11,4 @@ public record PluginConfig(
     public static PluginConfig fromMap(Map<String, Object> root) {
         return PluginConfigFactory.fromMap(root);
     }
-
-    public JoinMessagesConfig joinMessages() {
-        return new JoinMessagesConfig(
-                proxyMessages.enabled(),
-                proxyMessages.join().toPlayer("en"),
-                proxyMessages.join().broadcast("en"),
-                proxyMessages.firstJoinOnly(),
-                proxyMessages.suppressVanilla());
-    }
 }

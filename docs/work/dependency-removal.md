@@ -8,7 +8,7 @@ The plugin must run on a clean Velocity proxy.
 - No third-party plugin dependency in plugin metadata.
 - No docs instructing operators to install another plugin.
 - No source imports from non-native scoreboard packages.
-- No config keys for unsupported scoreboard-team or ping-objective behavior.
+- No config keys for unsupported team, collision, name-tag, or ping-display behavior.
 
 ## Verification
 

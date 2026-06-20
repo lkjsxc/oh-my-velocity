@@ -1,6 +1,6 @@
 package com.ohmyvelocity.feature.tab;
 
-import com.ohmyvelocity.domain.ConfigManager;
+import com.ohmyvelocity.adapter.config.ConfigManager;
 import com.ohmyvelocity.domain.TabConfig;
 import com.ohmyvelocity.domain.TabRenderContext;
 import com.ohmyvelocity.domain.TabRenderPlan;
@@ -16,6 +16,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -25,7 +27,6 @@ public final class TabListFeature {
     private final ProxyServer server;
     private final ConfigManager configManager;
     private final TabRenderService renderer;
-    private final TabScoreboardBridge scoreboard = new TabScoreboardBridge();
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private ScheduledTask task;
 
@@ -90,7 +91,6 @@ public final class TabListFeature {
         for (Player subject : players) {
             updateEntry(viewer, subject, config);
         }
-        scoreboard.update(viewer, players, config, player -> group(player, config));
     }
 
     private void updateEntry(Player viewer, Player subject, TabConfig config) {
@@ -109,7 +109,13 @@ public final class TabListFeature {
                 group,
                 server.getPlayerCount(),
                 Math.max(configManager.config().motd().maxPlayers(), server.getConfiguration().getShowMaxPlayers()),
-                player.getPing());
+                player.getPing(),
+                currentDateTime(DateTimeFormatter.ISO_LOCAL_DATE),
+                currentDateTime(DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)));
+    }
+
+    private static String currentDateTime(DateTimeFormatter formatter) {
+        return formatter.format(LocalDateTime.now());
     }
 
     private String group(Player player, TabConfig config) {
