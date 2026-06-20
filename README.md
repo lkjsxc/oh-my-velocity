@@ -1,7 +1,7 @@
 # oh-my-velocity
 
-Velocity proxy plugin: MOTD, tab list, `/hub`, proxy messages, scheduled
-graceful restarts, and more.
+Self-contained Velocity proxy plugin for MOTD, native tab-list presentation,
+`/hub`, network messages, reload, and scheduled graceful restarts.
 
 ## Build
 
@@ -9,12 +9,12 @@ graceful restarts, and more.
 ./gradlew jar
 ```
 
-Output: `build/libs/oh-my-velocity-0.1.0.jar`
+Output: `build/libs/oh-my-velocity-*.jar`
 
 ## Install
 
-Copy the JAR into your Velocity `plugins/` folder. Requires Velocity 3.5+,
-Java 21, and VelocityScoreboardAPI 2.1.0.
+Copy the JAR into your Velocity `plugins/` folder. Requires Velocity 3.5+ and
+Java 21. No other Minecraft or Velocity plugin is required.
 
 ## Verify
 
@@ -32,23 +32,25 @@ docker compose -f docker-compose.verify.yml run --rm verify
 
 After first start, edit `plugins/ohmyvelocity/config.yml`.
 
-### Join messages
+### Network messages
 
-- `join-messages.to-player` — MiniMessage sent to the joining player
-- `join-messages.broadcast` — MiniMessage broadcast to other players
+- `messages.join.to-player` — MiniMessage sent to the joining player
+- `messages.join.broadcast` — MiniMessage broadcast to other players
+- `messages.leave.broadcast` — MiniMessage broadcast after disconnect
 - Placeholders: `{player}`, `{online}`, `{max}`, `{server}`
 
-### MOTD, tab, and hub
+### MOTD, tab-list, and hub
 
 - `motd.entries` — weighted server-list MOTDs
-- `tab.header` / `tab.footer` — tab list header/footer lines
-- `tab.display-name-format` — MiniMessage or legacy TAB-style format
-- `hub-command.target-server` — `/hub` destination, default `hub`
+- `tab-list.header` / `tab-list.footer` — native tab header/footer lines
+- `tab-list.display-name-format` — subject display name format
+- `hub.target-server` — `/hub` destination, default `hub`
 
 ### Scheduled restart
 
-- `restart.interval-hours` — default 24
-- `restart.warning-minutes` — warnings before shutdown
+- `restart.schedule-enabled` — scheduled restart toggle
+- `restart.manual-command-enabled` — admin command toggle
+- `restart.warning-minutes` — warning thresholds before shutdown
 - `restart.mode` — `graceful_shutdown` or `external_hook`
 
 **Important:** `proxy.shutdown()` stops the JVM. A host supervisor (Docker
@@ -66,7 +68,8 @@ After first start, edit `plugins/ohmyvelocity/config.yml`.
 
 ## Docs
 
-See [docs/README.md](docs/README.md) for contracts and architecture.
+See [docs/README.md](docs/README.md) for product contracts, architecture,
+operations, and verification.
 
 ## License
 

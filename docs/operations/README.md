@@ -1,8 +1,10 @@
 # Operations
 
-Deployment and runtime supervision.
+Operational docs describe how to run the built plugin and what the host must
+provide.
 
-## Children
+## Index
 
-- [restart-supervisor.md](restart-supervisor.md)
-- [deployment.md](deployment.md)
+- [deployment.md](deployment.md) — build output, install path, and runtime requirements.
+- [restart-supervisor.md](restart-supervisor.md) — external process supervisor contract.
+- [verification.md](verification.md) — operator-facing verification checklist.

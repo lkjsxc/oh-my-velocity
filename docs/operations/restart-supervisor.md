@@ -1,23 +1,23 @@
 # Restart Supervisor
 
-## Responsibility Split
+The plugin can request shutdown, but it does not start a new JVM. Scheduled and
+manual restarts require a host process supervisor.
 
-| Layer | Owns |
-|-------|------|
-| oh-my-velocity | Warnings, graceful `proxy.shutdown()` |
-| Host / container | Process restart after JVM exit |
+## Supervisor Options
 
-## Docker
+- Docker Compose `restart: unless-stopped`.
+- systemd `Restart=always`.
+- A hosting panel restart policy.
 
-Set `restart: unless-stopped` on the Velocity service, or use a compose
-recreate timer for forced container refresh.
+## Plugin Responsibility
 
-## Without Supervisor
+- Persist the next scheduled restart time.
+- Broadcast configured warnings once per threshold.
+- Run the configured external hook when `restart.mode` is `external_hook`.
+- Call Velocity shutdown after the restart decision is reached.
 
-`proxy.shutdown()` stops the proxy until an operator or supervisor starts it
-again.
+## Host Responsibility
 
-## external_hook Mode
-
-Runs `restart.external-hook` immediately before shutdown. Use for compose
-recreate scripts when the JVM cannot restart itself.
+- Detect the stopped Java process.
+- Start Velocity again.
+- Preserve the plugin data directory between starts.
