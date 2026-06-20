@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConfigValidationTest {
     @Test
@@ -74,5 +75,34 @@ class ConfigValidationTest {
                 """);
 
         assertThrows(IllegalArgumentException.class, () -> new ConfigManager(dir).reload());
+    }
+
+    @Test
+    void rejectsWrongShapedTopLevelSection() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of("restart: true"))));
+
+        assertTrue(error.getMessage().contains("restart"));
+    }
+
+    @Test
+    void rejectsWrongShapedLocalizedTemplate() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "messages:",
+                        "  join:",
+                        "    to-player: [bad]"))));
+
+        assertTrue(error.getMessage().contains("messages.join.to-player"));
+    }
+
+    @Test
+    void rejectsWrongShapedMapListItem() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> PluginConfig.fromMap(
+                YamlConfigLoader.parse(List.of(
+                        "motd:",
+                        "  entries: [bad]"))));
+
+        assertTrue(error.getMessage().contains("motd.entries[0]"));
     }
 }

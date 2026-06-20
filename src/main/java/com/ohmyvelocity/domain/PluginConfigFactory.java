@@ -45,10 +45,11 @@ final class PluginConfigFactory {
         boolean enabled = bool(proxy, "enabled", true);
         boolean firstOnly = bool(proxy, "first-join-only", false);
         LocalizedTemplateConfig join = template(
-                section(proxy, "join"),
+                section(proxy, "join", "messages.join"),
+                "messages.join",
                 "<green>Welcome, <yellow>{player}</yellow>!",
                 "<gray>[+] <white>{player}</white> joined.");
-        LocalizedTemplateConfig leave = template(section(proxy, "leave"), "", "");
+        LocalizedTemplateConfig leave = template(section(proxy, "leave", "messages.leave"), "messages.leave", "", "");
         return new ProxyMessagesConfig(enabled, join, leave, firstOnly);
     }
 
@@ -61,9 +62,11 @@ final class PluginConfigFactory {
                 integer(restart, "random-jitter-minutes", 10),
                 integerList(restart, "warning-minutes", List.of(60, 15, 5, 1)),
                 new LocalizedMessagesConfig(Map.of("warning", localized(restart, "warning-message",
-                        "<gold>Proxy restart in <yellow>{minutes}</yellow> minute(s)."))),
+                        "<gold>Proxy restart in <yellow>{minutes}</yellow> minute(s).",
+                        "restart.warning-message"))),
                 new LocalizedMessagesConfig(Map.of("kick", localized(restart, "kick-message",
-                        "<red>The proxy is restarting for maintenance. Please reconnect shortly."))),
+                        "<red>The proxy is restarting for maintenance. Please reconnect shortly.",
+                        "restart.kick-message"))),
                 text(restart, "mode", "graceful_shutdown"),
                 text(restart, "external-hook", ""),
                 integer(restart, "external-hook-timeout-seconds", 30));
@@ -71,7 +74,7 @@ final class PluginConfigFactory {
 
     private static MotdConfig motd(Map<String, Object> root) {
         Map<String, Object> motd = section(root, "motd");
-        List<MotdEntry> entries = mapList(motd, "entries").stream()
+        List<MotdEntry> entries = mapList(motd, "entries", "motd.entries").stream()
                 .map(item -> new MotdEntry(
                         text(item, "line1", ""),
                         text(item, "line2", ""),
@@ -101,7 +104,7 @@ final class PluginConfigFactory {
     private static HubCommandConfig hub(Map<String, Object> root) {
         Map<String, Object> hub = section(root, "hub");
         Map<String, Map<String, String>> messages = new LinkedHashMap<>(defaultHubMessages());
-        localizedMessages(section(hub, "messages")).forEach((key, value) -> {
+        localizedMessages(section(hub, "messages", "hub.messages"), "hub.messages").forEach((key, value) -> {
             Map<String, String> merged = new LinkedHashMap<>(messages.getOrDefault(key, Map.of()));
             merged.putAll(value);
             messages.put(key, Map.copyOf(merged));
@@ -114,11 +117,12 @@ final class PluginConfigFactory {
 
     private static LocalizedTemplateConfig template(
             Map<String, Object> section,
+            String path,
             String defaultToPlayer,
             String defaultBroadcast) {
         return new LocalizedTemplateConfig(
-                localized(section, "to-player", defaultToPlayer),
-                localized(section, "broadcast", defaultBroadcast));
+                localized(section, "to-player", defaultToPlayer, path + ".to-player"),
+                localized(section, "broadcast", defaultBroadcast, path + ".broadcast"));
     }
 
     private static Map<String, Map<String, String>> defaultHubMessages() {

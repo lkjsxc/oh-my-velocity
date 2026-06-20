@@ -9,10 +9,20 @@ final class ConfigValues {
     private ConfigValues() {
     }
 
-    @SuppressWarnings("unchecked")
     static Map<String, Object> section(Map<String, Object> root, String key) {
+        return section(root, key, key);
+    }
+
+    @SuppressWarnings("unchecked")
+    static Map<String, Object> section(Map<String, Object> root, String key, String path) {
         Object value = root.get(key);
-        return value instanceof Map<?, ?> map ? (Map<String, Object>) map : Map.of();
+        if (value == null) {
+            return Map.of();
+        }
+        if (value instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
+        }
+        throw new IllegalArgumentException(path + " must be a section");
     }
 
     static boolean bool(Map<String, Object> map, String key, boolean fallback) {
@@ -47,7 +57,7 @@ final class ConfigValues {
 
     static String text(Map<String, Object> map, String key, String fallback) {
         Object value = map.get(key);
-        return value == null ? fallback : String.valueOf(value);
+        return value == null ? fallback : scalarText(key, value);
     }
 
     static List<String> stringList(Map<String, Object> map, String key, List<String> fallback) {
@@ -58,7 +68,10 @@ final class ConfigValues {
             }
             throw new IllegalArgumentException(key + " must be a list");
         }
-        List<String> parsed = list.stream().map(String::valueOf).toList();
+        List<String> parsed = new java.util.ArrayList<>();
+        for (int index = 0; index < list.size(); index++) {
+            parsed.add(scalarText(key + "[" + index + "]", list.get(index)));
+        }
         return parsed.isEmpty() ? fallback : List.copyOf(parsed);
     }
 
@@ -76,57 +89,83 @@ final class ConfigValues {
 
     @SuppressWarnings("unchecked")
     static List<Map<String, Object>> mapList(Map<String, Object> map, String key) {
+        return mapList(map, key, key);
+    }
+
+    @SuppressWarnings("unchecked")
+    static List<Map<String, Object>> mapList(Map<String, Object> map, String key, String path) {
         Object value = map.get(key);
         if (!(value instanceof List<?> list)) {
             if (value != null) {
-                throw new IllegalArgumentException(key + " must be a list of maps");
+                throw new IllegalArgumentException(path + " must be a list of maps");
             }
             return List.of();
         }
-        return list.stream()
-                .filter(Map.class::isInstance)
-                .map(item -> (Map<String, Object>) item)
-                .toList();
+        List<Map<String, Object>> parsed = new java.util.ArrayList<>();
+        for (int index = 0; index < list.size(); index++) {
+            Object item = list.get(index);
+            if (!(item instanceof Map<?, ?> itemMap)) {
+                throw new IllegalArgumentException(path + "[" + index + "] must be a map");
+            }
+            parsed.add((Map<String, Object>) itemMap);
+        }
+        return List.copyOf(parsed);
     }
 
     @SuppressWarnings("unchecked")
     static Map<String, String> localized(Map<String, Object> map, String key, String fallback) {
+        return localized(map, key, fallback, key);
+    }
+
+    static Map<String, String> localized(Map<String, Object> map, String key, String fallback, String path) {
         Object value = map.get(key);
         if (value instanceof Map<?, ?> locales) {
-            Map<String, String> parsed = new LinkedHashMap<>();
-            locales.forEach((locale, text) -> parsed.put(normalizeLocale(locale), String.valueOf(text)));
-            return Map.copyOf(parsed);
+            return localizedDirect(locales, path);
         }
-        if (value instanceof String text && !text.isBlank()) {
-            return Map.of("en", text);
+        if (value == null) {
+            return Map.of("en", fallback);
         }
-        return Map.of("en", fallback);
+        return Map.of("en", scalarText(path, value));
     }
 
     @SuppressWarnings("unchecked")
     static Map<String, Map<String, String>> localizedMessages(Map<String, Object> map) {
+        return localizedMessages(map, "messages");
+    }
+
+    @SuppressWarnings("unchecked")
+    static Map<String, Map<String, String>> localizedMessages(Map<String, Object> map, String path) {
         Map<String, Map<String, String>> messages = new LinkedHashMap<>();
         map.forEach((key, value) -> {
             if (value instanceof Map<?, ?> child) {
-                messages.put(key, localized((Map<String, Object>) child, "value", ""));
+                messages.put(key, localized((Map<String, Object>) child, "value", "", path + "." + key + ".value"));
                 if (!child.containsKey("value")) {
-                    messages.put(key, localizedDirect(child));
+                    messages.put(key, localizedDirect(child, path + "." + key));
                 }
             } else {
-                messages.put(key, Map.of("en", String.valueOf(value)));
+                messages.put(key, Map.of("en", scalarText(path + "." + key, value)));
             }
         });
         return Map.copyOf(messages);
     }
 
-    private static Map<String, String> localizedDirect(Map<?, ?> locales) {
+    private static Map<String, String> localizedDirect(Map<?, ?> locales, String path) {
         Map<String, String> parsed = new LinkedHashMap<>();
-        locales.forEach((locale, text) -> parsed.put(normalizeLocale(locale), String.valueOf(text)));
+        locales.forEach((locale, text) -> parsed.put(
+                normalizeLocale(locale),
+                scalarText(path + "." + normalizeLocale(locale), text)));
         return Map.copyOf(parsed);
     }
 
     private static String normalizeLocale(Object locale) {
         return String.valueOf(locale).replace('_', '-').toLowerCase(Locale.ROOT);
+    }
+
+    private static String scalarText(String path, Object value) {
+        if (value instanceof Map<?, ?> || value instanceof List<?>) {
+            throw new IllegalArgumentException(path + " must be scalar text");
+        }
+        return String.valueOf(value);
     }
 
     private static Integer parseInteger(String key, Object item) {
