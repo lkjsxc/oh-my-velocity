@@ -11,8 +11,8 @@ motd:
     - "lkjsxc.com"
     - "{online}/{max} players online"
   entries:
-    - line1: "<gold><bold>lkjsxc.com</bold> <gray>| <white>Velocity Network"
-      line2: "<yellow>Survival</yellow> <gray>+</gray> <aqua>Creative</aqua>"
+    - line1: "<gold><bold>lkjsxc.com</bold> <gray>| <white>Join the network"
+      line2: "<gray>Online now: <green>{online}</green><dark_gray>/</dark_gray><green>{max}</green>"
       weight: 1
       icon: ""
 ```
