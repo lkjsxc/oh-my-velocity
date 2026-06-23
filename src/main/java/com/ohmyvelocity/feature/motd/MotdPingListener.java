@@ -69,7 +69,9 @@ public final class MotdPingListener {
         if (plan.hidePlayerCount()) {
             builder.nullPlayers();
         } else {
-            builder.onlinePlayers(online).maximumPlayers(plan.maxPlayers());
+            builder.onlinePlayers(online)
+                    .maximumPlayers(plan.maxPlayers())
+                    .clearSamplePlayers();
             builder.samplePlayers(plan.samplePlayers().stream()
                     .map(MotdPingListener::samplePlayer)
                     .toList());
