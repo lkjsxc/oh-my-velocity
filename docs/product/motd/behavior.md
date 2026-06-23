@@ -19,11 +19,12 @@ input, and the domain planner chooses one weighted entry.
 Supported placeholders are `{online}`, `{max}`, `{host}`, `{date}`, and
 `{time}`. Unknown placeholders remain unchanged.
 
-## Player Count and Samples
+## Player Count Hover
 
 `motd.max-players` sets the visible max player count. `hide-player-count` hides
-the count when Velocity supports a hidden count response. Samples are rendered
-with placeholders and shown in the server-list hover area.
+the count when Velocity supports a hidden count response. The hover shows online
+player names only. It shows up to 15 names and appends `and {n} more` when more
+players are online.
 
 ## Reload
 

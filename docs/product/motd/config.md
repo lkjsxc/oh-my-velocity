@@ -7,9 +7,6 @@ motd:
   hide-player-count: false
   target-hosts:
     - "*"
-  samples:
-    - "lkjsxc.com"
-    - "{online}/{max} players online"
   entries:
     - line1: "<gold><bold>lkjsxc.com</bold> <gray>| <white>Join the network"
       line2: "<gray>Online now: <green>{online}</green><dark_gray>/</dark_gray><green>{max}</green>"
@@ -23,3 +20,4 @@ motd:
 - Each entry weight must be positive.
 - At least one enabled entry is required when MOTD is enabled.
 - `target-hosts` defaults to `*` when omitted.
+- The player-count hover is generated from online player names.

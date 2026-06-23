@@ -61,6 +61,7 @@ After first start, edit `plugins/ohmyvelocity/config.yml`.
 
 | Command | Permission | Description |
 |---------|------------|-------------|
+| `/ohmyvelocity`, `/omv version` | none | Show plugin version |
 | `/omv reload` | `ohmyvelocity.admin` | Reload config |
 | `/omv restart now` | `ohmyvelocity.admin` | Immediate restart |
 | `/omv restart status` | `ohmyvelocity.admin` | Show next restart time |

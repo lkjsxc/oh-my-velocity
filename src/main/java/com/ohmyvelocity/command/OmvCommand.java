@@ -23,18 +23,21 @@ public final class OmvCommand implements SimpleCommand {
     private final TabListFeature tabListFeature;
     private final MotdPingListener motdPingListener;
     private final MessageService messages;
+    private final String version;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public OmvCommand(
             Services services,
             RestartScheduler restartScheduler,
             TabListFeature tabListFeature,
-            MotdPingListener motdPingListener) {
+            MotdPingListener motdPingListener,
+            String version) {
         this.services = services;
         this.restartScheduler = restartScheduler;
         this.tabListFeature = tabListFeature;
         this.motdPingListener = motdPingListener;
         this.messages = services.messages();
+        this.version = version;
     }
 
     @Override
@@ -42,19 +45,28 @@ public final class OmvCommand implements SimpleCommand {
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
         if (args.length == 0) {
-            source.sendMessage(miniMessage.deserialize("<gray>Usage: /omv <reload|restart>"));
+            if (isVersionRequest(invocation)) {
+                sendVersion(source);
+                return;
+            }
+            source.sendMessage(miniMessage.deserialize("<gray>Usage: /omv <reload|restart|version>"));
             return;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "reload" -> handleReload(source);
             case "restart" -> handleRestart(source, args);
+            case "version" -> sendVersion(source);
             default -> source.sendMessage(miniMessage.deserialize("<red>Unknown subcommand."));
         }
     }
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return invocation.source().hasPermission(PERMISSION);
+        return isVersionRequest(invocation) || invocation.source().hasPermission(PERMISSION);
+    }
+
+    private void sendVersion(CommandSource source) {
+        source.sendMessage(miniMessage.deserialize("<green>oh-my-velocity <gray>version <white>" + version));
     }
 
     private void handleReload(CommandSource source) {
@@ -79,6 +91,14 @@ public final class OmvCommand implements SimpleCommand {
             case "status" -> sendStatus(source);
             default -> source.sendMessage(miniMessage.deserialize("<red>Unknown restart subcommand."));
         }
+    }
+
+    private static boolean isVersionRequest(Invocation invocation) {
+        String[] args = invocation.arguments();
+        if (args.length == 0) {
+            return "ohmyvelocity".equalsIgnoreCase(invocation.alias());
+        }
+        return "version".equalsIgnoreCase(args[0]);
     }
 
     private void sendStatus(CommandSource source) {

@@ -6,12 +6,10 @@ public record MotdConfig(
         boolean enabled,
         List<MotdEntry> entries,
         int maxPlayers,
-        List<String> samples,
         boolean hidePlayerCount,
         List<String> targetHosts) {
     public MotdConfig {
         entries = List.copyOf(entries);
-        samples = List.copyOf(samples);
         targetHosts = List.copyOf(targetHosts);
     }
 
@@ -20,7 +18,6 @@ public record MotdConfig(
                 false,
                 List.of(new MotdEntry("<gold><bold>lkjsxc.com</bold>", "<gray>{online}/{max} online", 1, "")),
                 128,
-                List.of(),
                 false,
                 List.of("*"));
     }

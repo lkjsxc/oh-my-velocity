@@ -3,8 +3,10 @@
 Command classes are adapters. They translate Velocity command sources into
 domain contexts and execute returned plans.
 
-## `/omv`
+## `/omv` and `/ohmyvelocity`
 
+- `/ohmyvelocity` reports the plugin version without a permission requirement.
+- `/omv version` reports the plugin version without a permission requirement.
 - `/omv reload` reloads config and reports success or validation failure.
 - `/omv restart status` reports the next scheduled restart state.
 - `/omv restart now` triggers manual restart when enabled.

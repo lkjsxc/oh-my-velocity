@@ -17,10 +17,12 @@ import java.nio.file.Path;
 @Plugin(
         id = "ohmyvelocity",
         name = "oh-my-velocity",
-        version = "0.1.0",
+        version = OhMyVelocityPlugin.VERSION,
         authors = {"lkj"},
         dependencies = {})
 public final class OhMyVelocityPlugin {
+    public static final String VERSION = "0.1.0";
+
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataDirectory;

@@ -1,7 +1,7 @@
 # MOTD
 
-MOTD controls server-list ping description, player count, samples, and optional
-favicon.
+MOTD controls server-list ping description, player count, player-name hover,
+and optional favicon.
 
 ## Index
 

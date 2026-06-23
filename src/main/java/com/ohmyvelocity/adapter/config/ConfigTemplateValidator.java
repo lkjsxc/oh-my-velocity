@@ -36,7 +36,6 @@ final class ConfigTemplateValidator {
             validateTemplate("motd.entries[" + index + "].line2", entry.line2());
             index++;
         }
-        validateList("motd.samples", config.motd().samples());
     }
 
     private static void validateMessages(String path, LocalizedMessagesConfig config) {

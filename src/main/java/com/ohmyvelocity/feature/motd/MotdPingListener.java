@@ -5,6 +5,7 @@ import com.ohmyvelocity.domain.MotdPlan;
 import com.ohmyvelocity.domain.MotdService;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyPingEvent;
+import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.util.Favicon;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -48,13 +50,16 @@ public final class MotdPingListener {
     @Subscribe
     public void onProxyPing(ProxyPingEvent event) {
         String host = event.getConnection().getRawVirtualHost().orElse("");
+        int online = server.getPlayerCount();
+        List<String> hoverNames = playerNames();
         Optional<MotdPlan> planned = motd.plan(
                 configManager.config().motd(),
-                server.getPlayerCount(),
+                online,
                 host,
                 random,
                 currentDateTime(DateTimeFormatter.ISO_LOCAL_DATE),
-                currentDateTime(DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)));
+                currentDateTime(DateTimeFormatter.ofPattern("HH:mm", Locale.ROOT)),
+                hoverNames);
         if (planned.isEmpty()) {
             return;
         }
@@ -64,7 +69,7 @@ public final class MotdPingListener {
         if (plan.hidePlayerCount()) {
             builder.nullPlayers();
         } else {
-            builder.onlinePlayers(server.getPlayerCount()).maximumPlayers(plan.maxPlayers());
+            builder.onlinePlayers(online).maximumPlayers(plan.maxPlayers());
             builder.samplePlayers(plan.samplePlayers().stream()
                     .map(MotdPingListener::samplePlayer)
                     .toList());
@@ -93,6 +98,13 @@ public final class MotdPingListener {
             logger.warn("Could not load MOTD icon {}", resolved, ex);
             return Optional.empty();
         }
+    }
+
+    private List<String> playerNames() {
+        return server.getAllPlayers().stream()
+                .map(Player::getUsername)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
     }
 
     private static ServerPing.SamplePlayer samplePlayer(String name) {

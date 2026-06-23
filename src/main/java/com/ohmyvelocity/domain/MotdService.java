@@ -1,13 +1,26 @@
 package com.ohmyvelocity.domain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
 public final class MotdService {
+    private static final int SAMPLE_PLAYER_LIMIT = 15;
+
     public Optional<MotdPlan> plan(MotdConfig config, int online, String virtualHost, Random random) {
-        return plan(config, online, virtualHost, random, "", "");
+        return plan(config, online, virtualHost, random, List.of());
+    }
+
+    public Optional<MotdPlan> plan(
+            MotdConfig config,
+            int online,
+            String virtualHost,
+            Random random,
+            List<String> playerNames) {
+        return plan(config, online, virtualHost, random, "", "", playerNames);
     }
 
     public Optional<MotdPlan> plan(
@@ -17,6 +30,17 @@ public final class MotdService {
             Random random,
             String date,
             String time) {
+        return plan(config, online, virtualHost, random, date, time, List.of());
+    }
+
+    public Optional<MotdPlan> plan(
+            MotdConfig config,
+            int online,
+            String virtualHost,
+            Random random,
+            String date,
+            String time,
+            List<String> playerNames) {
         if (!config.enabled() || !matchesHost(config, virtualHost)) {
             return Optional.empty();
         }
@@ -29,7 +53,7 @@ public final class MotdService {
                 line2.isBlank() ? line1 : line1 + "\n" + line2,
                 max,
                 config.hidePlayerCount(),
-                samplePlayers(config, values),
+                samplePlayers(playerNames, online),
                 entry.icon()));
     }
 
@@ -86,7 +110,24 @@ public final class MotdService {
         return LegacyColorTranslator.toMiniMessage(PlaceholderFormatter.format(template, values));
     }
 
-    private static java.util.List<String> samplePlayers(MotdConfig config, Map<String, String> values) {
-        return config.samples().stream().map(item -> PlaceholderFormatter.format(item, values)).toList();
+    private static List<String> samplePlayers(List<String> playerNames, int online) {
+        int visibleLimit = Math.min(SAMPLE_PLAYER_LIMIT, Math.max(0, online));
+        List<String> samples = new ArrayList<>();
+        List<String> safePlayerNames = playerNames == null ? List.of() : playerNames;
+        for (String playerName : safePlayerNames) {
+            if (samples.size() >= visibleLimit) {
+                break;
+            }
+            if (playerName != null && !playerName.isBlank()) {
+                samples.add(playerName);
+            }
+        }
+        if (online > SAMPLE_PLAYER_LIMIT) {
+            int remaining = Math.max(0, online - samples.size());
+            if (remaining > 0) {
+                samples.add("and " + remaining + " more");
+            }
+        }
+        return samples;
     }
 }

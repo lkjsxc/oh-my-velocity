@@ -20,11 +20,12 @@ public final class CommandRegistry {
             TabListFeature tabListFeature,
             MotdPingListener motdPingListener) {
         CommandMeta meta = server.getCommandManager().metaBuilder("omv")
+                .aliases("ohmyvelocity")
                 .plugin(plugin)
                 .build();
         server.getCommandManager().register(
                 meta,
-                new OmvCommand(services, scheduler, tabListFeature, motdPingListener));
+                new OmvCommand(services, scheduler, tabListFeature, motdPingListener, OhMyVelocityPlugin.VERSION));
         CommandMeta hub = server.getCommandManager().metaBuilder("hub")
                 .plugin(plugin)
                 .build();

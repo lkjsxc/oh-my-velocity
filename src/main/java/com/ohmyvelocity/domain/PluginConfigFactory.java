@@ -83,7 +83,6 @@ final class PluginConfigFactory {
                 bool(motd, "enabled", false),
                 motd.containsKey("entries") ? entries : MotdConfig.defaults().entries(),
                 integer(motd, "max-players", 128),
-                stringList(motd, "samples", List.of()),
                 bool(motd, "hide-player-count", false),
                 stringList(motd, "target-hosts", List.of("*")));
     }
